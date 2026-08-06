@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Assignment | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#000000',    
+                        darkCard: '#111111',  
+                        darkBorder: '#262626', 
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #404040; }
+        .table-row-transition { transition: all 0.2s ease; }
+        input[type="checkbox"] { accent-color: #2563eb; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 min-h-screen overflow-x-hidden transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="h-14 md:h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder flex items-center justify-between px-3 md:px-6 sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <button onclick="window.history.back()" class="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Allocate Equipment</h1>
+                <p class="text-[9px] md:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Departmental Assignment</p>
+            </div>
+        </div>
+        <button onclick="toggleDarkMode()" class="p-1.5 md:p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 transition-transform hover:scale-105">
+            <svg id="theme-sun" class="w-4 h-4 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-4 h-4 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <!-- Left: Controls -->
+            <aside class="lg:col-span-1 space-y-4">
+                <section class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm p-6">
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Assignment Controls</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">1. Select Target Dept.</label>
+                            <select id="dept-selector" onchange="updateUIState()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm font-semibold transition-all">
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-100 dark:border-darkBorder">
+                            <button id="bulk-assign-btn" onclick="openAssignModal()" disabled
+                                    class="w-full py-4 bg-blue-600 text-white rounded-2xl text-xs font-bold shadow-lg hover:bg-blue-700 transition-all flex flex-col items-center justify-center space-y-1 disabled:opacity-20 disabled:grayscale cursor-pointer">
+                                <span class="uppercase tracking-widest">Assign to Dept</span>
+                                <span id="selection-count-text" class="text-[9px] opacity-70">0 items selected</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- Right: Item List -->
+            <section class="lg:col-span-3 bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm flex flex-col overflow-hidden">
+                <div class="p-5 border-b border-gray-100 dark:border-darkBorder flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-slate-900/20">
+                    <h2 class="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">Unassigned Inventory</h2>
+                    <div class="relative w-full md:w-64">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></span>
+                        <input type="text" id="search-item" onkeyup="filterItems()" placeholder="Search Name, SN..." class="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 dark:text-white">
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-x-auto custom-scroll">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-darkBorder">
+                                <th class="px-4 py-3 w-12 text-center"><input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)"></th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Model / Serial</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Item Name</th>
+                                <th class="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Manufacturer</th>
+                            </tr>
+                        </thead>
+                        <tbody id="item-table-body" class="divide-y divide-gray-100 dark:divide-darkBorder"></tbody>
+                    </table>
+                    <div id="loader" class="py-20 text-center text-blue-600 font-bold text-xs uppercase tracking-widest">Loading...</div>
+                    <div id="empty-state" class="hidden py-20 text-center text-slate-400 font-bold text-sm uppercase">No items available.</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="assign-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeAssignModal()"></div>
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-3xl shadow-2xl p-8 text-center transform transition-all border border-gray-200 dark:border-darkBorder">
+            <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg></div>
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2 uppercase tracking-tight">Confirm Allocation</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-8">Assign <span id="modal-count" class="font-bold text-blue-600"></span> items to <span id="modal-dept" class="font-bold text-slate-800 dark:text-white"></span>?</p>
+            <button id="confirm-btn" onclick="executeAssignment()" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all uppercase text-xs tracking-widest mb-3">Confirm Assignment</button>
+            <button onclick="closeAssignModal()" class="w-full py-3 text-slate-500 font-bold hover:text-slate-700 dark:text-slate-400">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl opacity-0 transition-all z-[200] whitespace-nowrap"></div>
+
+    <script>
+        const activeUserId = localStorage.getItem('active_user_id');
+        let unassignedItems = [];
+        let selectedIds = new Set();
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        function showStatus(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl transition-all z-[200] ${isError ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-800'}`;
+            t.classList.remove('opacity-0'); t.classList.add('translate-y-[-10px]', 'opacity-100');
+            setTimeout(() => { t.classList.add('opacity-0'); t.classList.remove('translate-y-[-10px]', 'opacity-100'); }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!activeUserId) window.location.href = "../../login.html";
+            await fetchDepts();
+            await fetchItems();
+        });
+
+        async function fetchDepts() {
+            const fd = new FormData(); fd.append('action', 'fetch_depts');
+            const res = await fetch('../scripts/process_assignments.php', { method: 'POST', body: fd });
+            const json = await res.json();
+            if(json.status === 'success') {
+                const sel = document.getElementById('dept-selector');
+                json.data.forEach(d => sel.innerHTML += `<option value="${d.dept_id}">${d.dept_name}</option>`);
+            }
+        }
+
+        async function fetchItems() {
+            document.getElementById('loader').classList.remove('hidden');
+            const fd = new FormData(); fd.append('action', 'fetch_unassigned');
+            const res = await fetch('../scripts/process_assignments.php', { method: 'POST', body: fd });
+            const json = await res.json();
+            unassignedItems = json.data || [];
+            renderTable(unassignedItems);
+            document.getElementById('loader').classList.add('hidden');
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('item-table-body');
+            tbody.innerHTML = '';
+            document.getElementById('empty-state').classList.toggle('hidden', data.length > 0);
+            
+            // Uncheck master box
+            document.getElementById('master-checkbox').checked = false;
+            
+            data.forEach(item => {
+                const checked = selectedIds.has(String(item.item_id)) ? 'checked' : '';
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/50 cursor-pointer" onclick="document.getElementById('check-${item.item_id}').click()">
+                        <td class="px-4 py-4 text-center">
+                            <input type="checkbox" id="check-${item.item_id}" value="${item.item_id}" ${checked} onclick="event.stopPropagation()" onchange="toggleItem('${item.item_id}', this.checked)">
+                        </td>
+                        <td class="px-6 py-4"><p class="text-xs font-bold text-slate-800 dark:text-white">${item.item_model}</p><p class="text-[9px] text-slate-500 font-mono">SN: ${item.serial_number}</p></td>
+                        <td class="px-6 py-4 text-sm font-semibold">${item.item_name}</td>
+                        <td class="px-6 py-4 text-xs text-slate-500 uppercase">${item.item_manufacturer}</td>
+                    </tr>`;
+            });
+        }
+
+        function toggleItem(id, isChecked) {
+            if(isChecked) selectedIds.add(String(id)); else selectedIds.delete(String(id));
+            updateUIState();
+        }
+
+        function toggleSelectAll(master) {
+            const boxes = document.querySelectorAll('#item-table-body input[type="checkbox"]');
+            boxes.forEach(b => {
+                b.checked = master.checked;
+                if(master.checked) selectedIds.add(String(b.value)); else selectedIds.delete(String(b.value));
+            });
+            updateUIState();
+        }
+
+        function updateUIState() {
+            const count = selectedIds.size;
+            document.getElementById('selection-count-text').innerText = `${count} item${count !== 1 ? 's' : ''} selected`;
+            document.getElementById('bulk-assign-btn').disabled = !(count > 0 && document.getElementById('dept-selector').value !== "");
+        }
+
+        function filterItems() {
+            const term = document.getElementById('search-item').value.toLowerCase();
+            const filtered = unassignedItems.filter(i => i.item_name.toLowerCase().includes(term) || i.serial_number.toLowerCase().includes(term));
+            renderTable(filtered);
+        }
+
+        function openAssignModal() {
+            const sel = document.getElementById('dept-selector');
+            document.getElementById('modal-count').innerText = selectedIds.size;
+            document.getElementById('modal-dept').innerText = sel.options[sel.selectedIndex].text;
+            document.getElementById('assign-modal').classList.remove('hidden');
+            document.getElementById('assign-modal').classList.add('flex');
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assign-modal').classList.add('hidden');
+            document.getElementById('assign-modal').classList.remove('flex');
+        }
+
+        async function executeAssignment() {
+            const btn = document.getElementById('confirm-btn');
+            btn.disabled = true; btn.innerText = "Processing...";
+            
+            const fd = new FormData();
+            fd.append('action', 'assign_bulk');
+            fd.append('dept_id', document.getElementById('dept-selector').value);
+            fd.append('item_ids', JSON.stringify(Array.from(selectedIds)));
+
+            try {
+                const res = await fetch('../scripts/process_assignments.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    showStatus(json.message);
+                    selectedIds.clear();
+                    updateUIState();
+                    closeAssignModal();
+                    await fetchItems();
+                } else { showStatus(json.message, true); }
+            } catch(e) { showStatus("Request failed", true); }
+            btn.disabled = false; btn.innerText = "Confirm Assignment";
+        }
+    </script>
+</body>
+</html>

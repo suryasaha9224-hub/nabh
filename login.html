@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#000000',    /* Pure Black */
+                        darkCard: '#111111',  /* Very Dark Gray */
+                        darkBorder: '#262626', /* Neutral 800 */
+                        slate: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717',
+                            950: '#0a0a0a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            transition: background-color 0.3s ease;
+        }
+
+        /* Modal Transitions */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 200ms, transform 200ms;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 flex flex-col min-h-screen relative overflow-x-hidden">
+
+    <!-- Top Header Navigation -->
+    <header class="absolute top-0 left-0 w-full px-4 py-4 md:px-8 md:py-6 flex justify-end items-center z-10">
+        <!-- Dark Mode Toggle -->
+        <button onclick="toggleDarkMode()" class="p-2 md:p-2.5 bg-white dark:bg-darkCard border border-gray-200 dark:border-darkBorder rounded shadow-sm text-slate-600 dark:text-amber-400 hover:scale-105 transition-all">
+            <svg id="theme-sun" class="w-4 h-4 md:w-5 md:h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-4 h-4 md:w-5 md:h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </header>
+
+    <!-- Main Login Container -->
+    <main class="flex-1 flex items-center justify-center p-4 py-20 z-0">
+        
+        <!-- Login Card -->
+        <div class="w-full max-w-md bg-white dark:bg-darkCard rounded-xl shadow-xl border border-gray-200 dark:border-darkBorder overflow-hidden">
+            
+            <!-- Card Header -->
+            <div class="p-6 md:p-8 border-b border-gray-100 dark:border-darkBorder text-center bg-slate-50/50 dark:bg-slate-900/30">
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 shadow">N</div>
+                <h1 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Staff Login</h1>
+                <p class="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 mt-1.5 uppercase tracking-widest">NABH Guardian Access</p>
+            </div>
+
+            <!-- Error Banner (Hidden by default) -->
+            <div id="error-banner" class="hidden bg-red-100 border-b border-red-200 text-red-700 px-6 py-3 text-xs md:text-sm font-bold text-center"></div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)" class="p-6 md:p-8 space-y-5 md:space-y-6">
+                
+                <!-- Staff ID Field -->
+                <div>
+                    <label for="user_id" class="block text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">User ID / Staff ID</label>
+                    <input type="text" id="user_id" name="user_id" required placeholder="e.g. EMP-1024" 
+                           class="w-full px-3 py-2 md:px-4 md:py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded text-xs md:text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400">
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="password" class="block text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">Password</label>
+                        <a href="#" class="text-[10px] md:text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">Forgot Password?</a>
+                    </div>
+                    <input type="password" id="password" name="password" required placeholder="••••••••" 
+                           class="w-full px-3 py-2 md:px-4 md:py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded text-xs md:text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" id="login-btn" class="w-full py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-xs md:text-sm shadow transition-all flex justify-center items-center">
+                        <span>Secure Login</span>
+                    </button>
+                </div>
+                
+                <div class="text-center pt-2 border-t border-gray-100 dark:border-darkBorder mt-4 pt-4">
+                    <p class="text-[10px] md:text-xs text-slate-500 dark:text-slate-400">
+                        Don't have an account? <a href="registration.html" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">Register here</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Role Selection Popup Modal -->
+    <div id="role-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4">
+        <!-- Blur Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeRoleModal()"></div>
+        
+        <!-- Modal Card -->
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-xl shadow-2xl border border-gray-200 dark:border-darkBorder flex flex-col modal-enter modal-enter-active p-6">
+            
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-800 dark:text-white">Select Workspace</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Your account has multiple active roles.</p>
+            </div>
+
+            <!-- Dynamic Buttons Container -->
+            <div id="role-buttons" class="space-y-3">
+                <!-- Buttons injected via JavaScript -->
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="closeRoleModal()" class="text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline transition-colors">Cancel Login</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Dark Mode Persistence & Toggle ---
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        if (localStorage.getItem('theme') === 'dark' || 
+           (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // --- Core UI Variables ---
+        const roleModal = document.getElementById('role-modal');
+        const roleButtonsContainer = document.getElementById('role-buttons');
+        const loginForm = document.getElementById('login-form');
+        const loginBtn = document.getElementById('login-btn');
+        const errorBanner = document.getElementById('error-banner');
+
+        function showError(msg) {
+            errorBanner.innerText = msg;
+            errorBanner.classList.remove('hidden');
+        }
+
+        // --- Main Login Submission Handler ---
+        async function handleLogin(event) {
+            event.preventDefault(); // Prevent standard form submission
+
+            errorBanner.classList.add('hidden'); // Clear old errors
+            const formData = new FormData(loginForm);
+
+            // Update UI to Loading State
+            const originalText = loginBtn.innerHTML;
+            loginBtn.innerHTML = `<span>Authenticating...</span>`;
+            loginBtn.disabled = true;
+            loginBtn.classList.add('opacity-70');
+
+            try {
+                // 1. Fetch Request to your XAMPP Backend (login.php)
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // Check if network failed
+                if (!response.ok) throw new Error("Network response was not ok");
+                
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // --- Save the User ID to browser storage ---
+                    localStorage.setItem('active_user_id', result.user_id);
+                    
+                    // 2. Process Roles if login was successful
+                    processRoles(result.roles);
+                } else {
+                    showError(result.message || "Invalid Staff ID or Password.");
+                }
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                
+                // --- FALLBACK MOCK LOGIC FOR CANVAS TESTING ---
+                const mockUserId = formData.get('user_id').toUpperCase();
+                let mockRoles = { "user": "0", "admin": "0", "purchase": "0" };
+                
+                if (mockUserId === 'EMP-USER') {
+                    mockRoles.user = "1";
+                } else if (mockUserId === 'EMP-ADMIN') {
+                    mockRoles.user = "1"; 
+                    mockRoles.admin = "1"; // User + Admin = HOD Dashboard
+                } else if (mockUserId === 'EMP-MULTI') { 
+                    mockRoles.user = "1"; 
+                    mockRoles.admin = "1"; 
+                    mockRoles.purchase = "1"; // All 3 = Super Admin
+                } else {
+                    mockRoles.user = "1"; // Default
+                }
+                
+                localStorage.setItem('active_user_id', mockUserId);
+                processRoles(mockRoles);
+                // ----------------------------------------------
+
+            } finally {
+                // Restore button state
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
+                loginBtn.classList.remove('opacity-70');
+            }
+        }
+
+        // --- Role Processing & Routing ---
+        function processRoles(rolesObj) {
+            // Build an array of active roles with their target URLs
+            const activeRoles = [];
+            
+            const isUser = rolesObj.user === "1" || rolesObj.user === 1;
+            const isAdmin = rolesObj.admin === "1" || rolesObj.admin === 1;
+            const isPurchase = rolesObj.purchase === "1" || rolesObj.purchase === 1;
+            
+            // A Super Admin is defined as a user with ALL privileges
+            const isSuperAdmin = isUser && isAdmin && isPurchase;
+
+            if (isUser) {
+                activeRoles.push({ id: 'user', title: 'Standard Portal', url: 'user/user_dashboard.html' });
+            }
+            
+            if (isAdmin) {
+                if (isSuperAdmin) {
+                    activeRoles.push({ id: 'admin', title: 'Super Admin Console', url: 'admin/admin_dashboard.html' });
+                } else {
+                    // Route to HOD dashboard if they have admin privileges but aren't a Super Admin
+                    activeRoles.push({ id: 'hod', title: 'HOD Dashboard', url: 'hod/admin_hod.html' });
+                }
+            }
+            
+            if (isPurchase) {
+                activeRoles.push({ id: 'purchase', title: 'Purchase Dashboard', url: 'purchase/purchase_dashboard.html' });
+            }
+
+            // Route based on count
+            if (activeRoles.length === 0) {
+                showError("Your account is pending verification or no access roles have been assigned.");
+            } else if (activeRoles.length === 1) {
+                // Single Role -> Direct Redirect
+                loginBtn.innerHTML = `<span>Redirecting...</span>`;
+                window.location.href = activeRoles[0].url;
+            } else {
+                // Multiple Roles -> Show Selector Modal
+                renderRoleModal(activeRoles);
+            }
+        }
+
+        // --- Modal Control ---
+        function renderRoleModal(roles) {
+            roleButtonsContainer.innerHTML = ''; // Clear container
+            
+            roles.forEach(role => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = "w-full py-3 px-4 border border-gray-200 dark:border-darkBorder rounded-lg text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all flex justify-between items-center group";
+                
+                // Add icon based on role
+                let iconSvg = '';
+                if(role.id === 'user') iconSvg = `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>`;
+                if(role.id === 'admin') iconSvg = `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>`;
+                if(role.id === 'hod') iconSvg = `<svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>`;
+                if(role.id === 'purchase') iconSvg = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        ${iconSvg}
+                        <span>${role.title}</span>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:translate-x-1 group-hover:text-blue-500 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                `;
+                
+                // Link button
+                btn.onclick = () => { window.location.href = role.url; };
+                roleButtonsContainer.appendChild(btn);
+            });
+
+            roleModal.classList.remove('hidden');
+            roleModal.classList.add('flex');
+        }
+
+        function closeRoleModal() {
+            roleModal.classList.remove('flex');
+            roleModal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revoke & Discard | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#050b14',    
+                        darkCard: '#0b1325',  
+                        darkBorder: '#1c2a42', 
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .dark-transition { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #404040; }
+        .table-row-transition { transition: all 0.2s ease; }
+        input[type="checkbox"] { accent-color: #2563eb; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 min-h-screen overflow-x-hidden transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="h-14 md:h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder flex items-center justify-between px-3 md:px-6 sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <button onclick="window.history.back()" class="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Revoke Allocation</h1>
+                <p class="text-[9px] md:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Return or Discard Assets</p>
+            </div>
+        </div>
+        
+        <button onclick="toggleDarkMode()" class="p-1.5 md:p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 transition-transform hover:scale-105">
+            <svg id="theme-sun" class="w-4 h-4 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-4 h-4 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        
+        <!-- Bulk Action Bar -->
+        <div id="bulk-bar" class="hidden items-center justify-between bg-blue-600 text-white px-6 py-4 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+                <div>
+                    <p id="bulk-count-text" class="text-sm font-bold tracking-tight">0 items selected</p>
+                    <p class="text-[10px] opacity-80 uppercase tracking-widest font-medium">Batch Operations</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="triggerBulkAction('revoke')" class="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold transition-all uppercase tracking-widest">Revoke All</button>
+                <button onclick="triggerBulkAction('discard')" class="px-4 py-2 bg-red-500 hover:bg-red-400 text-white rounded-xl text-xs font-bold transition-all uppercase tracking-widest shadow-md">Discard All</button>
+            </div>
+        </div>
+
+        <section class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm flex flex-col overflow-hidden">
+            <div class="p-5 border-b border-gray-100 dark:border-darkBorder flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50 dark:bg-slate-900/20">
+                <div>
+                    <h2 class="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">Active Assignments</h2>
+                    <p class="text-[10px] text-slate-500 font-medium tracking-wide">Manage items currently deployed to departments</p>
+                </div>
+                <div class="relative w-full md:w-64">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text" id="search-revoke" onkeyup="filterTable()" placeholder="Search Item, Dept or SN..." 
+                           class="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-all">
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-x-auto custom-scroll">
+                <table class="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-darkBorder">
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Department</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Equipment Details</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Assigned Date</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                            <th class="px-6 py-4 w-16 text-center">
+                                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="revoke-table-body" class="divide-y divide-gray-100 dark:divide-darkBorder"></tbody>
+                </table>
+                <div id="loader" class="py-20 text-center"><p class="text-xs font-bold text-blue-600 animate-pulse uppercase tracking-widest">Syncing Records...</p></div>
+                <div id="empty-state" class="hidden py-20 text-center text-slate-400 font-bold text-sm uppercase">No active assignments found.</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: Action Confirmation -->
+    <div id="action-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-3xl shadow-2xl p-8 text-center border border-gray-200 dark:border-darkBorder transform transition-all">
+            <div id="modal-icon-container" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl"></div>
+            <h3 id="modal-title" class="text-xl font-bold text-slate-800 dark:text-white mb-2 tracking-tight uppercase">Confirm Action</h3>
+            <p id="modal-desc" class="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed"></p>
+            <button id="modal-confirm-btn" class="w-full py-3 text-white font-bold rounded-xl shadow-lg transition-all uppercase text-xs tracking-widest mb-3">Confirm & Process</button>
+            <button onclick="closeModal()" class="w-full py-2 text-slate-500 font-bold hover:text-slate-700 dark:text-slate-400 text-xs uppercase tracking-widest">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl opacity-0 transition-all pointer-events-none z-[200] whitespace-nowrap"></div>
+
+    <script>
+        const activeUserId = localStorage.getItem('active_user_id');
+        let currentAssignments = [];
+        let selectedIds = new Set();
+        let activeAction = null;
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        function showStatus(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl transition-all z-[200] ${isError ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-800'}`;
+            t.classList.remove('opacity-0'); t.classList.add('translate-y-[-10px]', 'opacity-100');
+            setTimeout(() => { t.classList.add('opacity-0'); t.classList.remove('translate-y-[-10px]', 'opacity-100'); }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchAssignments);
+
+        async function fetchAssignments() {
+            try {
+                const fd = new FormData(); fd.append('action', 'fetch_active');
+                const res = await fetch('../scripts/process_revoke.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    currentAssignments = json.data;
+                    renderTable(currentAssignments);
+                }
+            } catch(e) { showStatus("Sync Error", true); }
+            document.getElementById('loader').classList.add('hidden');
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('revoke-table-body');
+            tbody.innerHTML = '';
+            selectedIds.clear();
+            updateBulkUI();
+            
+            if(data.length === 0) { document.getElementById('empty-state').classList.remove('hidden'); return; }
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            data.forEach(row => {
+                tbody.innerHTML += `
+                    <tr class="table-row-transition hover:bg-slate-50 dark:hover:bg-slate-900/50 group">
+                        <td class="px-6 py-4"><span class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-extrabold rounded-lg border border-blue-200 dark:border-blue-800 uppercase tracking-tighter">${row.dept_name}</span></td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-bold text-slate-800 dark:text-white uppercase">${row.item_name}</p>
+                            <p class="text-[10px] text-slate-500 font-mono mt-0.5 uppercase">${row.item_model} • SN: ${row.serial_number}</p>
+                        </td>
+                        <td class="px-6 py-4 text-xs text-slate-600 dark:text-slate-400 font-medium">${new Date(row.date_assigned.replace(/-/g, "/")).toLocaleString('en-IN', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true})}</td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <button onclick="triggerAction('revoke', ${JSON.stringify(row).replace(/"/g, '&quot;')})" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded-lg hover:bg-amber-600 hover:text-white transition-all border border-slate-200 dark:border-slate-700 uppercase tracking-widest">Revoke</button>
+                                <button onclick="triggerAction('discard', ${JSON.stringify(row).replace(/"/g, '&quot;')})" class="px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[10px] font-bold rounded-lg hover:bg-red-600 hover:text-white transition-all border border-red-100 dark:border-red-900/50 uppercase tracking-widest">Discard</button>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <input type="checkbox" value="${row.assign_id}" data-item="${row.item_id}" data-dept="${row.dept_id}" onchange="toggleItemSelection(this)" class="w-4 h-4 rounded shadow-sm">
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function toggleItemSelection(cb) {
+            const data = { assign_id: cb.value, item_id: cb.dataset.item, dept_id: cb.dataset.dept };
+            const key = JSON.stringify(data);
+            if(cb.checked) selectedIds.add(key); else selectedIds.delete(key);
+            updateBulkUI();
+        }
+
+        function toggleSelectAll(master) {
+            const boxes = document.querySelectorAll('#revoke-table-body input[type="checkbox"]');
+            boxes.forEach(b => {
+                b.checked = master.checked;
+                const data = { assign_id: b.value, item_id: b.dataset.item, dept_id: b.dataset.dept };
+                const key = JSON.stringify(data);
+                if(master.checked) selectedIds.add(key); else selectedIds.delete(key);
+            });
+            updateBulkUI();
+        }
+
+        function updateBulkUI() {
+            const bar = document.getElementById('bulk-bar');
+            const countText = document.getElementById('bulk-count-text');
+            const count = selectedIds.size;
+            
+            if(count > 0) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+                countText.innerText = `${count} equipment selected`;
+            } else {
+                bar.classList.add('hidden');
+                bar.classList.remove('flex');
+            }
+        }
+
+        function triggerAction(type, rowData) {
+            // mode 'single'
+            activeAction = { type, mode: 'single', data: [rowData] };
+            showModalConfig(type, 1, rowData.item_name);
+        }
+
+        function triggerBulkAction(type) {
+            // mode 'bulk'
+            const dataList = Array.from(selectedIds).map(str => JSON.parse(str));
+            activeAction = { type, mode: 'bulk', data: dataList };
+            showModalConfig(type, dataList.length, "selected items");
+        }
+
+        function showModalConfig(type, count, label) {
+            const modal = document.getElementById('action-modal');
+            const btn = document.getElementById('modal-confirm-btn');
+            const iconCont = document.getElementById('modal-icon-container');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+
+            if(type === 'revoke') {
+                title.innerText = "Revoke Allocation";
+                desc.innerHTML = `Confirm returning <b>${label}</b> (${count}) from department back to general inventory.`;
+                btn.className = "w-full py-3 bg-amber-600 text-white font-bold rounded-xl shadow-lg hover:bg-amber-700 transition-all uppercase text-xs tracking-widest mb-3";
+                iconCont.className = "w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl";
+                iconCont.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>`;
+            } else {
+                title.innerText = "Confirm Discard";
+                desc.innerHTML = `Warning: <b>${label}</b> (${count}) will be permanently removed from inventory. History will be archived.`;
+                btn.className = "w-full py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition-all uppercase text-xs tracking-widest mb-3";
+                iconCont.className = "w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl";
+                iconCont.innerHTML = `<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+            }
+
+            btn.onclick = executeAction;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('action-modal').classList.add('hidden');
+            document.getElementById('action-modal').classList.remove('flex');
+            activeAction = null;
+        }
+
+        async function executeAction() {
+            if(!activeAction) return;
+            const btn = document.getElementById('modal-confirm-btn');
+            btn.disabled = true; btn.innerText = "Processing Batch...";
+
+            const fd = new FormData();
+            fd.append('action', activeAction.type + '_bulk'); // Use bulk endpoint logic
+            fd.append('batch_data', JSON.stringify(activeAction.data));
+
+            try {
+                const res = await fetch('../scripts/process_revoke.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    showStatus(json.message);
+                    closeModal();
+                    await fetchAssignments();
+                } else { showStatus(json.message, true); }
+            } catch(e) { showStatus("Communication Failure", true); }
+            btn.disabled = false; btn.innerText = "Confirm & Process";
+        }
+
+        function filterTable() {
+            const term = document.getElementById('search-revoke').value.toLowerCase();
+            const filtered = currentAssignments.filter(a => a.item_name.toLowerCase().includes(term) || a.dept_name.toLowerCase().includes(term) || a.serial_number.toLowerCase().includes(term));
+            renderTable(filtered);
+        }
+    </script>
+</body>
+</html>

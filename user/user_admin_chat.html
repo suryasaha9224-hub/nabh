@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Chat | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        /* PITCH BLACK THEME */
+                        darkBg: '#000000',    
+                        darkCard: '#111111',  
+                        darkBorder: '#262626', 
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .dark-transition { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #404040; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 flex flex-col h-screen overflow-hidden dark-transition relative z-0">
+
+    <main class="flex-1 overflow-hidden w-full px-3 py-4 md:px-8 md:py-6 flex flex-col relative">
+        
+        <!-- Theme Toggle Floating Button -->
+        <button onclick="toggleDarkMode()" class="absolute top-6 right-6 md:top-8 md:right-10 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 hover:scale-105 transition-transform z-50 shadow-sm">
+            <svg id="theme-sun" class="w-4 h-4 md:w-5 md:h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-4 h-4 md:w-5 md:h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+
+        <!-- Active Chat Interface -->
+        <section id="chat-view" class="max-w-4xl w-full mx-auto bg-white dark:bg-darkCard rounded-xl md:rounded-3xl shadow-sm border border-gray-200 dark:border-darkBorder overflow-hidden flex-col flex-1 h-full flex transition-all">
+            
+            <!-- Card Header / Status Banner -->
+            <div class="p-3 md:p-4 border-b border-gray-100 dark:border-darkBorder bg-slate-50/50 dark:bg-slate-900/20 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold border border-blue-200 dark:border-blue-800">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <div class="w-3 h-3 bg-emerald-500 border-2 border-white dark:border-darkCard rounded-full absolute bottom-0 right-0"></div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 dark:text-white text-sm md:text-base tracking-tight">Admin Chat Support</h3>
+                        <p class="text-[9px] md:text-[10px] text-slate-500 mt-0.5 uppercase tracking-widest font-bold">Department Team</p>
+                    </div>
+                </div>
+                <div class="text-right mr-10 md:mr-16">
+                    <p id="ticket-status" class="text-[9px] md:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded">Connecting...</p>
+                </div>
+            </div>
+
+            <!-- Chat History Area -->
+            <div id="chat-history" class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 space-y-5 bg-slate-50/30 dark:bg-darkBg/50 relative flex flex-col">
+                <div id="empty-chat-state" class="m-auto text-center hidden">
+                    <div class="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-slate-700 shadow-sm">
+                        <svg class="w-8 h-8 text-blue-500 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Start a Conversation</h3>
+                    <p class="text-xs text-slate-500 mt-2 max-w-xs mx-auto leading-relaxed">No prior chat history found. Send a message to request support or report an issue.</p>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <form id="chat-form" onsubmit="sendMessage(event)" class="bg-white dark:bg-darkCard border-t border-gray-100 dark:border-darkBorder p-3 md:p-5 shrink-0 flex items-end space-x-2 md:space-x-3 relative z-10">
+                <div class="flex-1 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+                    <textarea id="chat-input" rows="1" placeholder="Type your message here..." class="w-full bg-transparent px-4 py-3.5 text-xs md:text-sm text-slate-800 dark:text-white outline-none resize-none custom-scroll" oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 120) + 'px'"></textarea>
+                </div>
+                <button type="submit" id="send-btn" class="w-12 h-11 md:w-14 md:h-[50px] bg-blue-600 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 active:scale-95 transition-all shadow-md shrink-0 focus:outline-none">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </form>
+
+        </section>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white px-6 py-2.5 rounded-xl text-[10px] md:text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none z-[500] whitespace-nowrap"></div>
+
+    <script>
+        const activeUserId = localStorage.getItem('active_user_id');
+        let autoRefreshInterval;
+
+        // --- EXACT API FETCH WRAPPER ---
+        async function apiFetch(endpoint, options) {
+            const path = `../common-pages/scripts/${endpoint}`;
+            return await fetch(path, options); 
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!activeUserId) {
+                window.location.href = "../login.html"; 
+                return;
+            }
+            
+            // Check for pitch black dark mode preferences
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+
+            // Directly fetch history for the user's department
+            fetchChatHistory();
+            autoRefreshInterval = setInterval(fetchChatHistory, 5000);
+            
+            // Enter key to send handling
+            document.getElementById('chat-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+                }
+            });
+        });
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function showError(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-600 border border-red-700 text-white px-6 py-2.5 rounded-xl text-[10px] md:text-sm font-bold shadow-2xl transition-all z-[500] whitespace-nowrap opacity-100 translate-y-[-10px]";
+            setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-[-10px]'); t.classList.add('opacity-0'); }, 3000);
+        }
+
+        // --- Data Fetching for Chat ---
+        async function fetchChatHistory() {
+            try {
+                const fd = new FormData();
+                fd.append('action', 'fetch');
+                fd.append('user_id', activeUserId);
+
+                const res = await apiFetch('process_user_chat.php', { method: 'POST', body: fd });
+                if(res.ok) {
+                    const json = await res.json();
+                    if (json.status === 'success') {
+                        renderChat(json.data);
+                    } else {
+                        renderChat(null); // No chat history found
+                    }
+                } else {
+                    renderChat(null);
+                }
+            } catch(e) {
+                console.error("Chat sync error:", e);
+                renderChat(null);
+            }
+        }
+
+        // --- Rendering Chat ---
+        function renderChat(data) {
+            const container = document.getElementById('chat-history');
+            
+            if (!data || (!data.user_chat && !data.admin_chat)) {
+                // Ensure empty state is injected if no data exists
+                container.innerHTML = `
+                    <div id="empty-chat-state" class="m-auto text-center mt-10">
+                        <div class="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-slate-700 shadow-sm">
+                            <svg class="w-8 h-8 text-blue-500 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                        </div>
+                        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Start a Conversation</h3>
+                        <p class="text-xs text-slate-500 mt-2 max-w-xs mx-auto leading-relaxed">No prior chat history found. Send a message to request support or report an issue.</p>
+                    </div>
+                `;
+                document.getElementById('ticket-status').innerText = "Awaiting Message";
+                document.getElementById('ticket-status').className = "text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded";
+                return;
+            }
+            
+            const ticketStatus = document.getElementById('ticket-status');
+            
+            if(data.status === 'resolved') {
+                ticketStatus.innerText = "Ticket Resolved";
+                ticketStatus.className = "text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-100 dark:bg-emerald-900/30 px-2.5 py-1 rounded";
+            } else {
+                ticketStatus.innerText = "Ticket Open";
+                ticketStatus.className = "text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest bg-blue-100 dark:bg-blue-900/30 px-2.5 py-1 rounded";
+            }
+
+            let userChats = [];
+            let adminChats = [];
+            try { userChats = JSON.parse(data.user_chat || '[]'); } catch(e){}
+            try { adminChats = JSON.parse(data.admin_chat || '[]'); } catch(e){}
+
+            let allMessages = [];
+            userChats.forEach(m => allMessages.push({ ...m, sender: 'user' }));
+            adminChats.forEach(m => allMessages.push({ ...m, sender: 'admin' }));
+
+            allMessages.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+            // Prevent UI flicker by ignoring re-renders if no new real messages exist
+            const currentMsgCount = container.querySelectorAll('.msg-bubble:not(.temp-msg)').length;
+            const hasTempMsg = container.querySelectorAll('.temp-msg').length > 0;
+            if (currentMsgCount === allMessages.length && !hasTempMsg) return; 
+
+            // Clear ONLY message bubbles safely (keeping empty state if it was there)
+            container.innerHTML = ''; 
+            
+            allMessages.forEach(msg => {
+                const dateObj = new Date(msg.datetime);
+                const timeStr = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                const displayTime = `${dateStr}, ${timeStr}`;
+
+                if (msg.sender === 'user') {
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="flex justify-end msg-bubble animate-in slide-in-from-right-4 duration-300">
+                            <div class="bg-blue-600 text-white rounded-t-2xl rounded-l-2xl p-3 px-4 max-w-[85%] md:max-w-md shadow-md">
+                                <p class="text-xs md:text-sm whitespace-pre-wrap leading-relaxed">${escapeHTML(msg.message)}</p>
+                                <span class="text-[8px] md:text-[9px] text-blue-200 block mt-1.5 text-right uppercase tracking-widest">${displayTime}</span>
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="flex justify-start msg-bubble animate-in slide-in-from-left-4 duration-300">
+                            <div class="bg-white dark:bg-darkCard text-slate-800 dark:text-slate-200 border border-gray-200 dark:border-darkBorder rounded-t-2xl rounded-r-2xl p-3 px-4 max-w-[85%] md:max-w-md shadow-sm">
+                                <p class="text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-widest flex items-center">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                                    Admin Support
+                                </p>
+                                <p class="text-xs md:text-sm whitespace-pre-wrap leading-relaxed font-medium">${escapeHTML(msg.message)}</p>
+                                <span class="text-[8px] md:text-[9px] text-slate-400 block mt-2 uppercase tracking-widest">${displayTime}</span>
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // --- Sending Logic ---
+        async function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const messageText = input.value.trim();
+            const btn = document.getElementById('send-btn');
+            
+            if (!messageText) return;
+
+            const container = document.getElementById('chat-history');
+            
+            // Remove empty state block if present
+            const emptyBlock = document.getElementById('empty-chat-state');
+            if (emptyBlock) emptyBlock.remove();
+            
+            // Generate Optimistic UI "Sending..." bubble
+            const tempHTML = `
+                <div class="flex justify-end temp-msg animate-in slide-in-from-right-4 duration-200 opacity-60">
+                    <div class="bg-blue-600 text-white rounded-t-2xl rounded-l-2xl p-3 px-4 max-w-[85%] md:max-w-md shadow-md">
+                        <p class="text-xs md:text-sm whitespace-pre-wrap leading-relaxed">${escapeHTML(messageText)}</p>
+                        <span class="text-[8px] md:text-[9px] text-blue-200 block mt-1.5 text-right uppercase tracking-widest flex items-center justify-end">
+                            <svg class="animate-spin -ml-1 mr-1 h-2.5 w-2.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Sending...
+                        </span>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', tempHTML);
+            container.scrollTop = container.scrollHeight;
+            
+            input.value = '';
+            input.style.height = ''; 
+            btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('action', 'send');
+            fd.append('user_id', activeUserId);
+            fd.append('message', messageText);
+
+            try {
+                const res = await apiFetch('process_user_chat.php', { method: 'POST', body: fd });
+                if(res.ok) {
+                    const json = await res.json();
+                    if (json.status === 'success') {
+                        // Force immediate refresh to replace the optimistic bubble
+                        fetchChatHistory();
+                    } else {
+                        showError(json.message);
+                        container.querySelectorAll('.temp-msg').forEach(el => el.remove());
+                    }
+                } else {
+                    showError("HTTP Error: " + res.status);
+                    container.querySelectorAll('.temp-msg').forEach(el => el.remove());
+                }
+            } catch(e) {
+                console.error("Network Error:", e);
+                showError("Failed to connect to server.");
+                container.querySelectorAll('.temp-msg').forEach(el => el.remove());
+            }
+            
+            btn.disabled = false;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+    </script>
+</body>
+</html>

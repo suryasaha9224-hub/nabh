@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAR System | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        /* DEEP BLUE THEME for Dark Mode */
+                        darkBg: '#050b14',    /* Very Deep Blue/Black */
+                        darkCard: '#0b1325',  /* Deep Navy */
+                        darkBorder: '#1c2a42', /* Muted Navy Border */
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .dark-transition { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        
+        .sidebar-link.active { background-color: rgba(37, 99, 235, 0.1); color: #2563eb; border-left: 4px solid #3b82f6; }
+        .dark .sidebar-link.active { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .sidebar-link { transition: all 0.2s ease; border-left: 4px solid transparent; }
+        .sidebar-link:hover:not(.active) { background-color: #f1f5f9; }
+        .dark .sidebar-link:hover:not(.active) { background-color: #111e36; }
+        
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #334155; }
+        
+        #sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-x: hidden; }
+        
+        @media (max-width: 767px) {
+            .sidebar-collapsed { transform: translateX(-100%); }
+            .sidebar-open { transform: translateX(0); }
+            .custom-scroll::-webkit-scrollbar { width: 2px; height: 2px; }
+        }
+        @media (min-width: 768px) {
+            .sidebar-collapsed { width: 0 !important; border-right-width: 0 !important; opacity: 0; pointer-events: none; }
+            .sidebar-open { width: 16rem; opacity: 1; }
+        }
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms ease-out, transform 200ms ease-out; }
+        
+        /* Utility to force iframe wrapper to expand */
+        .iframe-container { min-height: calc(100vh - 12rem); }
+    </style>
+</head>
+<body class="overflow-hidden bg-slate-50 dark:bg-darkBg dark:text-slate-200 relative z-0">
+
+    <!-- Backdrop for Mobile -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-[40] hidden backdrop-blur-sm"></div>
+
+    <!-- MAIN APP SECTION -->
+    <div class="flex h-screen w-full relative dark-transition">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 md:w-64 bg-white dark:bg-darkCard border-r border-gray-200 dark:border-darkBorder z-[50] flex flex-col sidebar-open md:static transition-all duration-300">
+            <div class="p-4 md:p-6 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center min-w-[16rem] shrink-0">
+                <div class="flex flex-col">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-blue-500/30 border border-blue-500/20">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-lg font-extrabold text-slate-800 dark:text-white tracking-tight leading-tight">AMAR <span class="text-blue-600 dark:text-blue-400">System</span></span>
+                            <span class="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-0.5">Workspace</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] md:text-[10px] text-slate-500 dark:text-slate-400 mt-2.5 ml-0.5 font-medium">Logged in as: <span id="sidebar-user-id" class="font-bold text-blue-600 dark:text-blue-400">Loading...</span></span>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <nav class="flex-1 mt-2 md:mt-4 overflow-y-auto custom-scroll min-w-[16rem]">
+                <div class="px-2 md:px-3 space-y-1 pb-2 mt-2">
+                    
+                    <button onclick="switchTab('dashboard')" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg active" id="btn-dashboard">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">Dashboard</span>
+                    </button>
+
+                    <!-- New Report (Collapsible) -->
+                    <button onclick="toggleSubmenu('submenu-reports', 'icon-reports')" class="sidebar-link w-full flex items-center justify-between px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span class="font-semibold text-xs md:text-sm">New Report</span>
+                        </div>
+                        <svg id="icon-reports" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="submenu-reports" class="hidden flex-col space-y-1 mt-1">
+                        <button onclick="loadIframe('../common-pages/asset_report/asset_reporting_own.html', 'Dept Report', 'btn-dept-report')" id="btn-dept-report" class="sidebar-link w-full flex items-center px-4 pl-[3.25rem] py-2 text-slate-500 dark:text-slate-400 rounded-lg">
+                            <span class="font-medium text-xs md:text-sm">Dept Report</span>
+                        </button>
+                        <button onclick="loadIframe('../common-pages/asset_report/asset_reporting.html', 'General Report', 'btn-general-report')" id="btn-general-report" class="sidebar-link w-full flex items-center px-4 pl-[3.25rem] py-2 text-slate-500 dark:text-slate-400 rounded-lg">
+                            <span class="font-medium text-xs md:text-sm">General Report</span>
+                        </button>
+                    </div>
+
+                    <button onclick="loadIframe('../common-pages/asset_status/asset_report_status.html', 'My Reports', 'btn-my-reports')" id="btn-my-reports" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">My Reports</span>
+                    </button>
+
+                    <button onclick="loadIframe('../common-pages/item_management/my_department_items.html', 'My Items', 'btn-my-items')" id="btn-my-items" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">My Items</span>
+                    </button>
+                    
+                    <!-- Support (Collapsible) -->
+                    <button onclick="toggleSubmenu('submenu-support', 'icon-support')" class="sidebar-link w-full flex items-center justify-between px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            <span class="font-semibold text-xs md:text-sm">Support</span>
+                        </div>
+                        <svg id="icon-support" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="submenu-support" class="hidden flex-col space-y-1 mt-1">
+                        <button onclick="loadIframe('user_admin_chat.html', 'Admin Chat', 'btn-admin-chat')" id="btn-admin-chat" class="sidebar-link w-full flex items-center px-4 pl-[3.25rem] py-2 text-slate-500 dark:text-slate-400 rounded-lg">
+                            <span class="font-medium text-xs md:text-sm">Admin Chat</span>
+                        </button>
+                        <button onclick="loadIframe('ai_chat.html', 'AI Support Chat', 'btn-ai-chat')" id="btn-ai-chat" class="sidebar-link w-full flex items-center px-4 pl-[3.25rem] py-2 text-slate-500 dark:text-slate-400 rounded-lg">
+                            <span class="font-medium text-xs md:text-sm">AI Support Chat</span>
+                        </button>
+                    </div>
+                    
+                    <button onclick="switchTab('profile')" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg" id="btn-profile">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">My Profile</span>
+                    </button>
+
+                    <button onclick="switchTab('about')" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg" id="btn-about">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">About Us</span>
+                    </button>
+
+                    <!-- Scan Asset Option -->
+                    <button onclick="loadIframe('../common-pages/asset_status/asset_fetched_all_data.html', 'Scan Asset QR', 'btn-scan-qr')" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg" id="btn-scan-qr">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">Scan Asset QR</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="p-3 md:p-4 border-t border-gray-200 dark:border-darkBorder min-w-[16rem] shrink-0">
+                <button onclick="logout()" class="w-full flex items-center justify-center space-x-2 p-2 md:p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg transition-colors font-bold text-[10px] md:text-xs uppercase tracking-widest hover:bg-red-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 transition-all duration-300 bg-slate-50 dark:bg-darkBg">
+            <!-- Header -->
+            <header class="h-14 md:h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder flex items-center justify-between px-3 md:px-6 shrink-0 shadow-sm z-10 transition-colors duration-300">
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <button onclick="toggleSidebar()" class="p-1.5 md:p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                    </button>
+                    <h1 id="tab-title" class="text-base md:text-lg font-bold text-slate-800 dark:text-white tracking-tight">Dashboard</h1>
+                </div>
+                
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-1.5 md:p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 hover:scale-105 transition-transform shadow-sm">
+                        <svg id="theme-sun" class="w-4 h-4 md:w-4 md:h-4 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                        <svg id="theme-moon" class="w-4 h-4 md:w-4 md:h-4 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                    
+                    <!-- Quick Logout Button in Header -->
+                    <button onclick="logout()" class="p-1.5 md:p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 transition-colors shrink-0 focus:outline-none" title="Log Out">
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Tab Content Area -->
+            <div id="content-area" class="flex-1 overflow-y-auto p-4 md:p-10 custom-scroll transition-colors duration-300 flex flex-col">
+                
+                <!-- Dashboard Tab -->
+                <div id="tab-dashboard" class="tab-pane space-y-6 md:space-y-10 py-4 md:py-8 flex-col">
+                    <div class="text-center max-w-2xl mx-auto px-4 mb-2">
+                        <h2 class="text-2xl md:text-3xl font-light text-slate-800 dark:text-white tracking-wide mb-1">Welcome, <span id="welcome-user-name" class="font-bold text-blue-600 dark:text-blue-400">User</span></h2>
+                        <p class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest font-semibold mt-2">AMAR Quality & Safety Workspace</p>
+                    </div>
+
+                    <!-- Cards Navigation Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 max-w-6xl mx-auto px-2 md:px-4">
+                        <!-- Dept Report -->
+                        <button onclick="loadIframe('../common-pages/asset_report/asset_reporting_own.html', 'Dept Report', 'btn-dept-report')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-blue-400 transition-all text-center group w-full">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-all">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                            </div>
+                            <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Dept Report</h3>
+                        </button>
+
+                        <!-- General Report -->
+                        <button onclick="loadIframe('../common-pages/asset_report/asset_reporting.html', 'General Report', 'btn-general-report')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-indigo-500 dark:hover:border-indigo-400 transition-all text-center group w-full">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-all">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">General Report</h3>
+                        </button>
+
+                        <!-- Report Status -->
+                        <button onclick="loadIframe('../common-pages/asset_status/asset_report_status.html', 'Report Status', 'btn-my-reports')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-emerald-500 dark:hover:border-emerald-400 transition-all text-center group w-full">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 transition-all">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg>
+                            </div>
+                            <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Report Status</h3>
+                        </button>
+                        
+                        <!-- My Items -->
+                        <button onclick="loadIframe('../common-pages/item_management/my_department_items.html', 'My Items', 'btn-my-items')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-cyan-500 dark:hover:border-cyan-400 transition-all text-center group w-full">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-cyan-50 dark:group-hover:bg-cyan-900/30 transition-all">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                            </div>
+                            <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">My Items</h3>
+                        </button>
+
+                        <!-- Admin Chat -->
+                        <button onclick="loadIframe('user_admin_chat.html', 'Admin Chat', 'btn-admin-chat')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-pink-500 dark:hover:border-pink-400 transition-all text-center group w-full">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-pink-600 dark:text-pink-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-pink-50 dark:group-hover:bg-pink-900/30 transition-all">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            </div>
+                            <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Admin Chat</h3>
+                        </button>
+
+                        <!-- User Manual -->
+                        <button onclick="loadIframe('user_manual.html', 'User Manual', null)" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-amber-500 dark:hover:border-amber-400 transition-all text-center group w-full">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-amber-600 dark:text-amber-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/30 transition-all">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477-4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                            </div>
+                            <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">User Manual</h3>
+                        </button>
+                        
+                        <!-- Scan Asset QR -->
+                        <button onclick="loadIframe('../common-pages/asset_status/asset_fetched_all_data.html', 'Scan Asset QR', 'btn-scan-qr')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-purple-500 dark:hover:border-purple-400 transition-all text-center group w-full">
+                            <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-purple-600 dark:text-purple-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/30 transition-all">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                            </div>
+                            <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Scan QR</h3>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Iframe Container Tab -->
+                <div id="tab-iframe" class="tab-pane hidden flex-col flex-1 w-full iframe-container">
+                    <iframe id="main-iframe" class="w-full h-full flex-1 border border-gray-200 dark:border-darkBorder rounded-2xl bg-white dark:bg-darkCard shadow-sm" src=""></iframe>
+                </div>
+
+                <!-- Full-Page Classic Profile Tab -->
+                <div id="tab-profile" class="tab-pane hidden flex-col w-full max-w-5xl mx-auto py-4 md:py-8 px-2 sm:px-4 pb-12">
+                    <div class="bg-white dark:bg-darkCard rounded-[2rem] border border-gray-200 dark:border-darkBorder shadow-lg overflow-hidden flex flex-col md:flex-row">
+                        <!-- Left: Avatar & Basic Info -->
+                        <div class="md:w-1/3 bg-slate-50 dark:bg-slate-800/50 p-8 md:p-10 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-200 dark:border-darkBorder relative">
+                            <div class="absolute top-0 left-0 w-full h-32 bg-blue-600/10 dark:bg-blue-500/5 rounded-b-[3rem]"></div>
+                            <div class="w-28 h-28 md:w-40 md:h-40 rounded-full border-4 border-white dark:border-slate-700 shadow-xl overflow-hidden mb-6 relative z-10">
+                                <img id="profile-avatar" src="" alt="Profile Avatar" class="w-full h-full object-cover">
+                            </div>
+                            <h2 id="profile-name" class="text-2xl font-bold text-slate-800 dark:text-white text-center tracking-tight z-10">LOADING...</h2>
+                            <p id="profile-role" class="text-blue-600 dark:text-blue-400 font-bold mt-2 uppercase text-[10px] tracking-widest text-center z-10">Portal User</p>
+                            <div class="mt-6 z-10">
+                                <span class="px-4 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-full uppercase tracking-widest border border-emerald-200 dark:border-emerald-800/50">Active Account</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Detailed Info -->
+                        <div class="md:w-2/3 p-6 sm:p-8 md:p-12 bg-white dark:bg-darkCard flex flex-col">
+                            <div class="flex justify-between items-center mb-6 md:mb-8 pb-4 border-b border-gray-100 dark:border-darkBorder">
+                                <h3 class="text-lg font-bold text-slate-800 dark:text-white tracking-tight">Account Details</h3>
+                                <button onclick="openEditProfileModal()" class="flex items-center space-x-2 px-4 py-2 bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-900/30 text-slate-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-gray-200 dark:border-slate-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    <span>Edit</span>
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">User ID / Employee ID</label>
+                                        <p id="profile-id" class="text-base font-mono font-medium text-slate-800 dark:text-slate-200">LOADING...</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Official Email</label>
+                                        <p id="profile-email" class="text-base font-medium text-slate-800 dark:text-slate-200 break-all">loading...</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Department</label>
+                                        <p id="profile-dept" class="text-base font-medium text-slate-800 dark:text-slate-200 uppercase">loading...</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Date Joined</label>
+                                        <p id="profile-joined" class="text-base font-medium text-slate-800 dark:text-slate-200">loading...</p>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 mt-4 border-t border-gray-100 dark:border-darkBorder grid grid-cols-1 sm:grid-cols-2 gap-6 pb-2 md:pb-4">
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Password</label>
+                                        <p class="text-lg font-bold text-slate-800 dark:text-slate-200 tracking-[0.2em] mt-0.5 leading-none">••••••••</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">System Access</label>
+                                        <p class="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight mt-1">Standard</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Us Tab -->
+                <div id="tab-about" class="tab-pane hidden flex-col h-full items-center justify-center">
+                    <div class="max-w-3xl mx-auto text-center space-y-6 md:space-y-8 py-10 px-4">
+                        <div class="w-20 h-20 md:w-24 md:h-24 bg-blue-600 rounded-[1.5rem] md:rounded-[2rem] mx-auto flex items-center justify-center text-white text-4xl md:text-5xl font-bold shadow-2xl rotate-3">A</div>
+                        <h2 class="text-2xl md:text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight uppercase">AMAR <span class="text-blue-600 dark:text-blue-400">System v2.5</span></h2>
+                        <p class="text-sm md:text-base text-gray-500 dark:text-gray-400 max-w-xl mx-auto leading-relaxed">Advanced Management of Assets and Resources (AMAR) is a specialized digital solution for modern hospitals. AMAR automates daily monitoring and facility management for healthcare administrators.</p>
+                        
+                        <div class="mt-4 px-4 py-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs md:text-sm font-semibold inline-block border border-blue-200 dark:border-blue-800">
+                            ⚠️ This site is currently in production, and will be updated soon.
+                        </div>
+
+                        <div class="pt-8 md:pt-10 flex justify-center space-x-6 md:space-x-8">
+                            <div class="text-center">
+                                <p class="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">100%</p>
+                                <p class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-widest mt-1">Digital Audit</p>
+                            </div>
+                            <div class="text-center border-x border-gray-200 dark:border-darkBorder px-6 md:px-8">
+                                <p class="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">FMS</p>
+                                <p class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-widest mt-1">Compliant</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer (Only visible on dashboard tab) -->
+                <footer id="main-footer" class="mt-auto pt-8 md:pt-12 w-full transition-colors duration-300">
+                    <div class="border-t border-gray-200 dark:border-darkBorder pt-6 pb-4 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] md:text-xs text-slate-500 dark:text-slate-400">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-700 dark:text-slate-300">AMAR System &copy; 2026</span>
+                        </div>
+                        
+                        <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-medium">
+                            <a href="#" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Privacy Policy</a>
+                            <a href="#" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Terms of Service</a>
+                            <a href="#" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">System Status</a>
+                        </div>
+                        
+                        <p class="font-medium text-center md:text-right">
+                            Optimized for <span class="text-slate-700 dark:text-slate-300">5th Edition</span> Standards
+                        </p>
+                    </div>
+                </footer>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-[120] hidden items-center justify-center px-4 bg-black/70 backdrop-blur-md">
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-3xl shadow-2xl border dark:border-darkBorder flex flex-col modal-enter modal-enter-active">
+            <div class="p-5 md:p-6 border-b dark:border-darkBorder flex justify-between items-center text-center">
+                <h3 class="text-sm md:text-base font-bold dark:text-white uppercase tracking-tight">Account Settings</h3>
+                <button onclick="closeEditProfileModal()" class="text-slate-400 hover:text-red-500 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <form id="edit-profile-form" onsubmit="submitEditProfile(event)" class="p-5 md:p-6 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Display Name</label>
+                    <input type="text" id="edit-profile-name" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email Address</label>
+                    <input type="email" id="edit-profile-email" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Department</label>
+                    <select id="edit-profile-dept" required disabled class="w-full px-4 py-2.5 md:py-3 bg-slate-100 dark:bg-slate-800 border dark:border-darkBorder rounded-xl outline-none text-slate-500 dark:text-slate-400 cursor-not-allowed text-xs md:text-sm transition-all">
+                        <option value="nan">None / General (nan)</option>
+                    </select>
+                    <p class="text-[8px] text-slate-400 mt-1">* Contact administrator to change department.</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">New Password (optional)</label>
+                    <input type="password" id="edit-profile-password" placeholder="••••••••" class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-xs md:text-sm transition-all placeholder-slate-400">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" id="btn-save-profile" class="w-full py-3 md:py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all uppercase text-[10px] tracking-widest">Update Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl text-[10px] sm:text-sm font-bold text-white shadow-2xl opacity-0 transition-all pointer-events-none z-[500] whitespace-nowrap"></div>
+    
+    <script>
+        // --- SAFE DOM MANIPULATION (Prevents Null Errors) ---
+        function safeSetText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text || ''; }
+        function safeSetSrc(id, src) { const el = document.getElementById(id); if (el) el.src = src || ''; }
+
+        // --- SMART API WRAPPER (Fixes 404 Errors) ---
+        async function apiFetch(endpoint, options) {
+            const pathsToTry = [
+                `${endpoint}`,
+                `./${endpoint}`,
+                `../../${endpoint}`,
+                `/nabh_project/${endpoint}`
+            ];
+            
+            let lastResponse;
+            for (const path of pathsToTry) {
+                try {
+                    lastResponse = await fetch(path, options);
+                    const contentType = lastResponse.headers.get("content-type");
+                    if (lastResponse.ok && contentType && contentType.includes("application/json")) {
+                        return lastResponse; 
+                    }
+                } catch(e) {}
+            }
+            return lastResponse || await fetch(`../${endpoint}`, options);
+        }
+
+        // --- DATA FETCHING LOGIC ---
+        const activeUserId = localStorage.getItem('active_user_id');
+        let currentActiveUserData = {};
+        let departmentsData = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!activeUserId) {
+                // window.location.href = "../login.html"; 
+            }
+            await fetchDepartments();
+            await fetchUserProfile();
+        });
+
+        async function fetchDepartments() {
+            try {
+                const response = await apiFetch('register.php?action=get_departments', { method: 'GET' });
+                if (response.ok) {
+                    const json = await response.json();
+                    if (json.status === 'success') {
+                        departmentsData = json.data || [];
+                        const deptSelect = document.getElementById('edit-profile-dept');
+                        if (deptSelect) {
+                            let opts = '<option value="nan">None / General (nan)</option>';
+                            departmentsData.forEach(d => {
+                                opts += `<option value="${d.dept_id}">${d.dept_name} (${d.dept_id})</option>`;
+                            });
+                            deptSelect.innerHTML = opts;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load departments:", e);
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const formData = new FormData();
+                formData.append('user_id', activeUserId);
+
+                const response = await apiFetch('get_user_data.php', { method: 'POST', body: formData });
+                
+                if (!response.ok) throw new Error("HTTP Error " + response.status);
+                
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error("Invalid server response format.");
+                }
+
+                if (result.status === 'success') {
+                    updateUIWithUserData(result.data);
+                } else {
+                    throw new Error(result.message); 
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error.message);
+                showSuccess("Database offline. Running in preview mode.");
+                loadMockUserData();
+            }
+        }
+
+        function updateUIWithUserData(userData) {
+            currentActiveUserData = userData; 
+            const safeName = userData.user_name || 'User';
+            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(safeName)}`;
+
+            safeSetText('sidebar-user-id', userData.user_id);
+            
+            const firstName = safeName.split(' ')[0];
+            safeSetText('welcome-user-name', firstName);
+
+            safeSetText('profile-name', safeName);
+            safeSetText('profile-id', userData.user_id);
+            safeSetText('profile-email', userData.user_mail || 'No Email Provided');
+            safeSetSrc('profile-avatar', avatarUrl);
+
+            let deptDisplay = "None / General (nan)";
+            if (userData.dept_id && userData.dept_id !== 'nan') {
+                const deptObj = departmentsData.find(d => d.dept_id === userData.dept_id);
+                if (deptObj) {
+                    deptDisplay = `${deptObj.dept_name} (${userData.dept_id})`;
+                } else {
+                    deptDisplay = userData.dept_id; 
+                }
+            }
+            safeSetText('profile-dept', deptDisplay);
+
+            if (userData.date_created) {
+                const d = new Date(userData.date_created);
+                safeSetText('profile-joined', isNaN(d) ? userData.date_created : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+            }
+
+            let roleLabel = "Standard Portal User";
+            if (userData.roles_decoded) {
+                if (userData.roles_decoded.admin === "1" || userData.roles_decoded.admin === 1) {
+                    roleLabel = "System Administrator";
+                } else if (userData.roles_decoded.purchase === "1" || userData.roles_decoded.purchase === 1) {
+                    roleLabel = "Purchase Officer";
+                }
+            }
+            
+            safeSetText('profile-role', roleLabel);
+        }
+
+        function loadMockUserData() {
+            const mockData = {
+                user_id: activeUserId || "EMP-000",
+                user_name: "Demo Staff",
+                user_mail: "demo@hospital.com",
+                dept_id: "nan",
+                date_created: "2026-01-15",
+                roles_decoded: { user: "1", admin: "0", purchase: "0" }
+            };
+            updateUIWithUserData(mockData);
+        }
+
+        // --- EDIT PROFILE MODAL LOGIC ---
+        function openEditProfileModal() {
+            const nameEl = document.getElementById('edit-profile-name');
+            const emailEl = document.getElementById('edit-profile-email');
+            const deptEl = document.getElementById('edit-profile-dept');
+            const passEl = document.getElementById('edit-profile-password');
+
+            if(nameEl) nameEl.value = currentActiveUserData.user_name || '';
+            if(emailEl) emailEl.value = currentActiveUserData.user_mail || '';
+            if(deptEl) deptEl.value = currentActiveUserData.dept_id || 'nan';
+            if(passEl) passEl.value = ''; 
+
+            const modal = document.getElementById('edit-profile-modal');
+            if(modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeEditProfileModal() {
+            const modal = document.getElementById('edit-profile-modal');
+            if(modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        async function submitEditProfile(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-profile');
+            if(btn) { btn.disabled = true; btn.innerText = "Saving..."; }
+
+            const formData = new FormData();
+            formData.append('user_id', activeUserId);
+            formData.append('user_name', document.getElementById('edit-profile-name').value);
+            formData.append('user_mail', document.getElementById('edit-profile-email').value);
+            // Department changes are locked, so keep existing.
+            formData.append('dept_id', currentActiveUserData.dept_id || 'nan');
+            formData.append('user_password', document.getElementById('edit-profile-password').value);
+
+            try {
+                const response = await apiFetch('update_profile.php', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error("HTTP Error " + response.status);
+                const text = await response.text();
+                const result = JSON.parse(text);
+
+                if (result.status === 'success') {
+                    showSuccess(result.message || 'Profile updated successfully!');
+                    closeEditProfileModal();
+                    fetchUserProfile(); 
+                } else {
+                    showError(result.message || 'Failed to update profile.');
+                }
+            } catch (err) {
+                console.error(err);
+                showSuccess("Mock update successful! (Backend missing)");
+                currentActiveUserData.user_name = document.getElementById('edit-profile-name').value;
+                currentActiveUserData.user_mail = document.getElementById('edit-profile-email').value;
+                updateUIWithUserData(currentActiveUserData);
+                closeEditProfileModal();
+            }
+            
+            if(btn) { btn.disabled = false; btn.innerText = "Update Account"; }
+        }
+
+        // --- DASHBOARD UI & NAVIGATION LOGIC ---
+        let isSidebarOpen = true; 
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        if (localStorage.getItem('theme') === 'dark' || 
+           (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            isSidebarOpen = !isSidebarOpen;
+            
+            if (isSidebarOpen) {
+                sidebar.classList.add('sidebar-open');
+                sidebar.classList.remove('sidebar-collapsed');
+                if (window.innerWidth < 768) backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.remove('sidebar-open');
+                sidebar.classList.add('sidebar-collapsed');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        // --- TOGGLE SUBMENU FUNCTION ---
+        function toggleSubmenu(menuId, iconId) {
+            const menu = document.getElementById(menuId);
+            const icon = document.getElementById(iconId);
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                menu.classList.add('flex');
+                if (icon) icon.style.transform = 'rotate(180deg)';
+            } else {
+                menu.classList.add('hidden');
+                menu.classList.remove('flex');
+                if (icon) icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // --- NEW IFRAME LOADER FUNCTION ---
+        function loadIframe(url, title, btnId) {
+            // Close sidebar automatically on mobile
+            if (window.innerWidth < 768 && isSidebarOpen) {
+                toggleSidebar();
+            }
+
+            // Hide standard tabs
+            document.querySelectorAll('.tab-pane').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            });
+            
+            // Show iframe tab
+            const target = document.getElementById('tab-iframe');
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('flex'); 
+            }
+
+            // Hide footer for maximum app space
+            const footer = document.getElementById('main-footer');
+            if (footer) footer.classList.add('hidden');
+            
+            // Update UI elements
+            document.getElementById('tab-title').innerText = title;
+
+            // Load iframe URL (only if changed)
+            const iframe = document.getElementById('main-iframe');
+            if (iframe && iframe.getAttribute('src') !== url) {
+                iframe.src = url;
+            }
+
+            // Manage active styles on sidebar
+            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+            if (btnId) {
+                const sideBtn = document.getElementById(btnId);
+                if (sideBtn) sideBtn.classList.add('active');
+            }
+        }
+
+        function switchTab(tabId) {
+            if (window.innerWidth < 768 && isSidebarOpen) toggleSidebar();
+
+            document.querySelectorAll('.tab-pane').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('flex'); 
+            });
+            
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) {
+                target.classList.remove('hidden');
+                if(tabId === 'profile' || tabId === 'iframe') {
+                    target.classList.add('flex'); 
+                }
+            }
+
+            const footer = document.getElementById('main-footer');
+            if (footer) {
+                if (tabId === 'dashboard') footer.classList.remove('hidden');
+                else footer.classList.add('hidden');
+            }
+            
+            const titles = {
+                'dashboard': 'Dashboard',
+                'profile': 'My Profile',
+                'about': 'About Us',
+                'contact': 'Contact Us'
+            };
+            document.getElementById('tab-title').innerText = titles[tabId] || 'Portal';
+
+            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+            const sideBtn = document.getElementById(`btn-${tabId}`);
+            if (sideBtn) sideBtn.classList.add('active');
+        }
+
+        function showSuccess(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-4', 'bg-red-600');
+            t.classList.add('opacity-100', 'translate-y-[-10px]', 'bg-slate-900', 'dark:bg-slate-800');
+            setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-4');
+                t.classList.remove('opacity-100', 'translate-y-[-10px]');
+            }, 3000);
+        }
+
+        function showError(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-4', 'bg-slate-900', 'dark:bg-slate-800');
+            t.classList.add('opacity-100', 'translate-y-[-10px]', 'bg-red-600');
+            setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-4');
+                t.classList.remove('opacity-100', 'translate-y-[-10px]', 'bg-red-600');
+                t.classList.add('bg-slate-900', 'dark:bg-slate-800'); 
+            }, 3000);
+        }
+
+        function logout() {
+            showSuccess('Logging out...');
+            localStorage.removeItem('active_user_id'); 
+            setTimeout(() => {
+                window.location.href = "../login.html"; 
+            }, 800);
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 768 && isSidebarOpen) toggleSidebar(); 
+        });
+    </script>
+</body>
+</html>

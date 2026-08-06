@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Exports & CSV | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#050b14',    
+                        darkCard: '#0b1325',  
+                        darkBorder: '#1c2a42', 
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #404040; }
+        
+        /* Ultra-compact Mobile Scrollbars */
+        @media (max-width: 767px) {
+            .custom-scroll::-webkit-scrollbar { width: 2px; height: 2px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 min-h-screen flex flex-col overflow-x-hidden transition-colors duration-300">
+
+    <!-- Super Compact Header -->
+    <header class="h-12 md:h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder flex items-center justify-between px-2 md:px-6 sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center space-x-2 md:space-x-3">
+            <button onclick="window.history.back()" class="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="text-xs md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Data Exports</h1>
+                <p class="text-[8px] md:text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">CSV Downloads</p>
+            </div>
+        </div>
+        <button onclick="toggleDarkMode()" class="p-1.5 md:p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 transition-transform hover:scale-105">
+            <svg id="theme-sun" class="w-3.5 h-3.5 md:w-5 md:h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-3.5 h-3.5 md:w-5 md:h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </header>
+
+    <main class="flex-1 w-full max-w-7xl mx-auto p-2 md:p-6 space-y-3 md:space-y-6 custom-scroll overflow-y-auto">
+        
+        <!-- CARD 1: REPORTS EXPORT -->
+        <section class="bg-white dark:bg-darkCard rounded-xl border border-gray-200 dark:border-darkBorder shadow-sm flex flex-col overflow-hidden">
+            <!-- Card Header -->
+            <div class="p-2.5 md:p-5 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-slate-900/40">
+                <div class="flex items-center space-x-2">
+                    <div class="p-1 md:p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-md">
+                        <svg class="w-3 h-3 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </div>
+                    <h2 class="text-[11px] md:text-base font-bold text-slate-800 dark:text-white uppercase tracking-tight">Asset Reports</h2>
+                </div>
+                <button onclick="downloadReportsCSV()" class="px-3 py-1.5 md:px-5 md:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] md:text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center space-x-1">
+                    <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Download</span>
+                </button>
+            </div>
+            
+            <!-- Compact Filters -->
+            <div class="p-2 md:p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4 bg-white dark:bg-darkCard">
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Report ID</label>
+                    <input type="text" id="f-rep-id" onkeyup="previewReports()" placeholder="e.g. 812" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">User ID</label>
+                    <input type="text" id="f-rep-user" onkeyup="previewReports()" placeholder="e.g. EMP" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</label>
+                    <select id="f-rep-status" onchange="previewReports()" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all cursor-pointer">
+                        <option value="all">All</option>
+                        <option value="0">Unverified</option>
+                        <option value="1">Verified</option>
+                        <option value="2">Resolved</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Urgency</label>
+                    <select id="f-rep-urgency" onchange="previewReports()" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all cursor-pointer">
+                        <option value="all">All</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Report Date</label>
+                    <input type="date" id="f-rep-date" onchange="previewReports()" class="w-full px-1.5 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Forwarded Date</label>
+                    <input type="date" id="f-rep-fwd" onchange="previewReports()" class="w-full px-1.5 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+            </div>
+
+            <!-- Ultra-compact Table -->
+            <div class="flex-1 overflow-x-auto custom-scroll border-t border-gray-100 dark:border-darkBorder max-h-48 md:max-h-64">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead class="bg-slate-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Ticket</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Asset</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Rep. Date</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Fwd. Date</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-darkBorder" id="preview-rep-body"></tbody>
+                </table>
+                <div id="empty-rep" class="hidden py-6 text-center text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest">No records match</div>
+            </div>
+            <div class="p-1.5 md:p-2 bg-slate-50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-darkBorder text-center">
+                <span class="text-[8px] md:text-[10px] font-bold text-slate-500">Showing <span id="count-rep" class="text-emerald-600 dark:text-emerald-400">0</span> matching rows</span>
+            </div>
+        </section>
+
+        <!-- CARD 2: USER DIRECTORY EXPORT -->
+        <section class="bg-white dark:bg-darkCard rounded-xl border border-gray-200 dark:border-darkBorder shadow-sm flex flex-col overflow-hidden">
+            <div class="p-2.5 md:p-5 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-slate-900/40">
+                <div class="flex items-center space-x-2">
+                    <div class="p-1 md:p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md">
+                        <svg class="w-3 h-3 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    <h2 class="text-[11px] md:text-base font-bold text-slate-800 dark:text-white uppercase tracking-tight">User Directory</h2>
+                </div>
+                <button onclick="downloadUsersCSV()" class="px-3 py-1.5 md:px-5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white text-[9px] md:text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center space-x-1">
+                    <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Download</span>
+                </button>
+            </div>
+            
+            <!-- Compact Filters -->
+            <div class="p-2 md:p-4 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 bg-white dark:bg-darkCard">
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">User ID</label>
+                    <input type="text" id="f-usr-id" onkeyup="previewUsers()" placeholder="e.g. EMP" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Name</label>
+                    <input type="text" id="f-usr-name" onkeyup="previewUsers()" placeholder="Search Name" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Department ID</label>
+                    <input type="text" id="f-usr-dept" onkeyup="previewUsers()" placeholder="Search Dept ID" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Date Joined</label>
+                    <input type="date" id="f-usr-date" onchange="previewUsers()" class="w-full px-1.5 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+            </div>
+
+            <!-- Ultra-compact Table -->
+            <div class="flex-1 overflow-x-auto custom-scroll border-t border-gray-100 dark:border-darkBorder max-h-48 md:max-h-64">
+                <table class="w-full text-left border-collapse min-w-[500px]">
+                    <thead class="bg-slate-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">User ID</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Name</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Department</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Joined</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Primary Role</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-darkBorder" id="preview-usr-body"></tbody>
+                </table>
+                <div id="empty-usr" class="hidden py-6 text-center text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest">No records match</div>
+            </div>
+            <div class="p-1.5 md:p-2 bg-slate-50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-darkBorder text-center">
+                <span class="text-[8px] md:text-[10px] font-bold text-slate-500">Showing <span id="count-usr" class="text-blue-600 dark:text-blue-400">0</span> matching rows</span>
+            </div>
+        </section>
+
+        <!-- CARD 3: MASTER INVENTORY EXPORT -->
+        <section class="bg-white dark:bg-darkCard rounded-xl border border-gray-200 dark:border-darkBorder shadow-sm flex flex-col overflow-hidden">
+            <div class="p-2.5 md:p-5 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-slate-900/40">
+                <div class="flex items-center space-x-2">
+                    <div class="p-1 md:p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md">
+                        <svg class="w-3 h-3 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    </div>
+                    <h2 class="text-[11px] md:text-base font-bold text-slate-800 dark:text-white uppercase tracking-tight">Master Inventory</h2>
+                </div>
+                <button onclick="downloadItemsCSV()" class="px-3 py-1.5 md:px-5 md:py-2 bg-purple-600 hover:bg-purple-700 text-white text-[9px] md:text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center space-x-1">
+                    <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Download</span>
+                </button>
+            </div>
+            
+            <!-- Compact Filters -->
+            <div class="p-2 md:p-4 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 bg-white dark:bg-darkCard">
+                <div class="col-span-2 md:col-span-2">
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Search Details</label>
+                    <input type="text" id="f-itm-search" onkeyup="previewItems()" placeholder="Search Name, Serial, Model, Dept..." class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-purple-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</label>
+                    <select id="f-itm-status" onchange="previewItems()" class="w-full px-2 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-purple-500 dark:text-white text-[9px] md:text-xs transition-all cursor-pointer">
+                        <option value="all">All Items</option>
+                        <option value="assigned">Assigned</option>
+                        <option value="unassigned">In Store (Unassigned)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Date Added</label>
+                    <input type="date" id="f-itm-date" onchange="previewItems()" class="w-full px-1.5 py-1 md:px-3 md:py-2 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded md:rounded-lg outline-none focus:ring-1 focus:ring-purple-500 dark:text-white text-[9px] md:text-xs transition-all">
+                </div>
+            </div>
+
+            <!-- Ultra-compact Table -->
+            <div class="flex-1 overflow-x-auto custom-scroll border-t border-gray-100 dark:border-darkBorder max-h-48 md:max-h-64">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead class="bg-slate-100 dark:bg-slate-900 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Equip ID</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Asset Name</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Serial Number</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Status/Dept</th>
+                            <th class="px-2 py-1.5 md:px-4 md:py-2 text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Added On</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-darkBorder" id="preview-itm-body"></tbody>
+                </table>
+                <div id="empty-itm" class="hidden py-6 text-center text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest">No records match</div>
+            </div>
+            <div class="p-1.5 md:p-2 bg-slate-50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-darkBorder text-center">
+                <span class="text-[8px] md:text-[10px] font-bold text-slate-500">Showing <span id="count-itm" class="text-purple-600 dark:text-purple-400">0</span> matching rows</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Global Loader -->
+    <div id="loader-overlay" class="fixed inset-0 bg-white/80 dark:bg-black/80 backdrop-blur-sm z-[200] flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Syncing Databases...</p>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-2.5 md:px-8 md:py-3 rounded-xl md:rounded-2xl text-[10px] md:text-sm font-bold text-white shadow-2xl opacity-0 transition-all z-[300] whitespace-nowrap pointer-events-none"></div>
+
+    <script>
+        const activeUserId = localStorage.getItem('active_user_id');
+        let reportsData = [];
+        let usersData = [];
+        let itemsData = [];
+
+        let currentExportReports = [];
+        let currentExportUsers = [];
+        let currentExportItems = [];
+
+        // --- Theme & Setup ---
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        function showStatus(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-2.5 md:px-8 md:py-3 rounded-xl md:rounded-2xl text-[10px] md:text-sm font-bold text-white shadow-2xl transition-all z-[300] ${isError ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-800'}`;
+            t.classList.remove('opacity-0'); t.classList.add('translate-y-[-10px]', 'opacity-100');
+            setTimeout(() => { t.classList.add('opacity-0'); t.classList.remove('translate-y-[-10px]', 'opacity-100'); }, 3000);
+        }
+
+        // --- Data Fetching ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            if(!activeUserId) {
+                window.location.href = "login.html";
+                return;
+            }
+            await fetchAllData();
+        });
+
+        // Wrapper to fix directory paths
+        async function apiFetch(endpoint, options) {
+            const paths = [`${endpoint}`, `./${endpoint}`, `../../${endpoint}`];
+            let res;
+            for (const p of paths) {
+                try {
+                    res = await fetch(p, options);
+                    if (res.ok && res.headers.get("content-type")?.includes("application/json")) return res; 
+                } catch(e) {}
+            }
+            return res || fetch(`../${endpoint}`, options); // fallback
+        }
+
+        async function fetchAllData() {
+            const fd = new FormData();
+            fd.append('admin_id', activeUserId); // Items needs admin_id
+            fd.append('user_id', activeUserId);  // Reports/Users need user_id
+
+            try {
+                // Fetch Reports
+                const resR = await apiFetch('fetch_all_reports.php', { method: 'POST', body: fd });
+                const jsonR = await resR.json();
+                if(jsonR.status === 'success') reportsData = jsonR.data || [];
+
+                // Fetch Users
+                const resU = await apiFetch('fetch_all_users.php', { method: 'POST', body: fd });
+                const jsonU = await resU.json();
+                if(jsonU.status === 'success') usersData = jsonU.data || [];
+
+                // Fetch Items
+                const resI = await apiFetch('fetch_all_items.php', { method: 'POST', body: fd });
+                const jsonI = await resI.json();
+                if(jsonI.status === 'success') itemsData = jsonI.data || [];
+
+            } catch (e) {
+                showStatus("Network Error: Could not sync some data.", true);
+            }
+
+            document.getElementById('loader-overlay').classList.add('hidden');
+            
+            // Initial Previews
+            previewReports();
+            previewUsers();
+            previewItems();
+        }
+
+        // --- Display Helpers ---
+        function formatDateStr(dStr) {
+            if(!dStr || dStr === 'nan') return 'N/A';
+            const d = new Date(dStr.replace(/-/g, "/"));
+            if(isNaN(d)) return dStr;
+            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+        }
+
+        function getStatusText(c) {
+            if(c == 0) return 'Unverified';
+            if(c == 1) return 'Verified';
+            if(c == 2) return 'Resolved';
+            return 'Unknown';
+        }
+
+        // --- Preview Logic: Reports ---
+        function previewReports() {
+            const id = document.getElementById('f-rep-id').value.toLowerCase().trim();
+            const usr = document.getElementById('f-rep-user').value.toLowerCase().trim();
+            const st = document.getElementById('f-rep-status').value;
+            const urg = document.getElementById('f-rep-urgency').value.toLowerCase();
+            const rDate = document.getElementById('f-rep-date').value;
+            const fDate = document.getElementById('f-rep-fwd').value;
+
+            let data = reportsData.filter(r => {
+                if(id && !r.report_id.toLowerCase().includes(id)) return false;
+                if(usr && !r.user_id.toLowerCase().includes(usr)) return false;
+                if(st !== 'all' && r.checked != st) return false;
+                if(urg !== 'all' && r.urgency_level.toLowerCase() !== urg) return false;
+                if(rDate && !r.report_date.startsWith(rDate)) return false;
+                if(fDate) {
+                    if(!r.forwarded_date || r.forwarded_date === 'nan' || !r.forwarded_date.startsWith(fDate)) return false;
+                }
+                return true;
+            });
+
+            currentExportReports = data;
+            document.getElementById('count-rep').innerText = data.length;
+            const tbody = document.getElementById('preview-rep-body');
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) { document.getElementById('empty-rep').classList.remove('hidden'); return; }
+            document.getElementById('empty-rep').classList.add('hidden');
+
+            data.slice(0, 50).forEach(r => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-mono text-slate-600 dark:text-slate-400">#${r.report_id}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate max-w-[100px] md:max-w-xs">${r.asset_name}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] text-slate-500">${formatDateStr(r.report_date)}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] text-slate-500">${formatDateStr(r.forwarded_date)}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-semibold text-slate-600 dark:text-slate-300">${getStatusText(r.checked)}</td>
+                    </tr>`;
+            });
+        }
+
+        // --- Preview Logic: Users ---
+        function previewUsers() {
+            const id = document.getElementById('f-usr-id').value.toLowerCase().trim();
+            const nm = document.getElementById('f-usr-name').value.toLowerCase().trim();
+            const dept = document.getElementById('f-usr-dept').value.toLowerCase().trim();
+            const jDate = document.getElementById('f-usr-date').value;
+
+            let data = usersData.filter(u => {
+                if(id && !u.user_id.toLowerCase().includes(id)) return false;
+                if(nm && !u.user_name.toLowerCase().includes(nm)) return false;
+                if(jDate && !u.date_created.startsWith(jDate)) return false;
+                if(dept) {
+                    if(!u.dept_id || u.dept_id === 'nan' || !u.dept_id.toLowerCase().includes(dept)) return false;
+                }
+                return true;
+            });
+
+            currentExportUsers = data;
+            document.getElementById('count-usr').innerText = data.length;
+            const tbody = document.getElementById('preview-usr-body');
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) { document.getElementById('empty-usr').classList.remove('hidden'); return; }
+            document.getElementById('empty-usr').classList.add('hidden');
+
+            data.slice(0, 50).forEach(u => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-mono text-slate-600 dark:text-slate-400">${u.user_id}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-bold text-slate-800 dark:text-slate-200">${u.user_name}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] text-slate-500 uppercase">${!u.dept_id || u.dept_id==='nan' ? 'General' : u.dept_id}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] text-slate-500">${formatDateStr(u.date_created)}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-semibold text-slate-600 dark:text-slate-300">${u.primary_role}</td>
+                    </tr>`;
+            });
+        }
+
+        // --- Preview Logic: Items ---
+        function previewItems() {
+            const search = document.getElementById('f-itm-search').value.toLowerCase().trim();
+            const st = document.getElementById('f-itm-status').value;
+            const aDate = document.getElementById('f-itm-date').value;
+
+            let data = itemsData.filter(i => {
+                if(search) {
+                    const match = i.item_name.toLowerCase().includes(search) || 
+                                  i.serial_number.toLowerCase().includes(search) || 
+                                  i.item_model.toLowerCase().includes(search) ||
+                                  (i.dept_name && i.dept_name.toLowerCase().includes(search));
+                    if(!match) return false;
+                }
+                if(aDate && !i.date_added.startsWith(aDate)) return false;
+                
+                const isAssigned = i.dept_name !== null && i.dept_name !== undefined;
+                if(st === 'assigned' && !isAssigned) return false;
+                if(st === 'unassigned' && isAssigned) return false;
+
+                return true;
+            });
+
+            currentExportItems = data;
+            document.getElementById('count-itm').innerText = data.length;
+            const tbody = document.getElementById('preview-itm-body');
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) { document.getElementById('empty-itm').classList.remove('hidden'); return; }
+            document.getElementById('empty-itm').classList.add('hidden');
+
+            data.slice(0, 50).forEach(i => {
+                const isAssigned = i.dept_name !== null && i.dept_name !== undefined;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-mono text-slate-600 dark:text-slate-400">#${i.item_id}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate max-w-[100px] md:max-w-xs">${i.item_name}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-mono text-slate-500">${i.serial_number}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase">${isAssigned ? i.dept_name : 'In Store'}</td>
+                        <td class="px-2 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[11px] text-slate-500">${formatDateStr(i.date_added)}</td>
+                    </tr>`;
+            });
+        }
+
+        // --- CSV Engine ---
+        function exportToCSV(filename, rows) {
+            if (!rows || !rows.length) {
+                showStatus("No data to download based on filters.", true);
+                return;
+            }
+            const separator = ',';
+            const keys = Object.keys(rows[0]);
+            const csvContent = keys.join(separator) + '\n' +
+                rows.map(row => {
+                    return keys.map(k => {
+                        let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+                        cell = cell.toString().replace(/"/g, '""');
+                        if (cell.search(/("|,|\n)/g) >= 0) cell = `"${cell}"`;
+                        return cell;
+                    }).join(separator);
+                }).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        function downloadReportsCSV() {
+            exportToCSV(`Asset_Reports_Export_${new Date().toISOString().split('T')[0]}.csv`, currentExportReports);
+            showStatus("Report export generated.");
+        }
+
+        function downloadUsersCSV() {
+            exportToCSV(`User_Directory_Export_${new Date().toISOString().split('T')[0]}.csv`, currentExportUsers);
+            showStatus("User export generated.");
+        }
+
+        function downloadItemsCSV() {
+            exportToCSV(`Master_Inventory_Export_${new Date().toISOString().split('T')[0]}.csv`, currentExportItems);
+            showStatus("Inventory export generated.");
+        }
+    </script>
+</body>
+</html>

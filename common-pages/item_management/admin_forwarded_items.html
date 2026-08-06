@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Store Imports | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#000000',    
+                        darkCard: '#111111',  
+                        darkBorder: '#262626', 
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .dark-transition { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #404040; }
+        .table-row-transition { transition: all 0.2s ease; }
+        input[type="checkbox"] { accent-color: #2563eb; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 min-h-screen overflow-x-hidden transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="h-14 md:h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder flex items-center justify-between px-3 md:px-6 sticky top-0 z-50 shadow-sm transition-colors duration-300">
+        <div class="flex items-center space-x-3">
+            <button onclick="window.history.back()" class="p-1.5 md:p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Pending Store Imports</h1>
+                <p class="text-[9px] md:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Verify & Add Forwarded Assets</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+            <div class="hidden sm:flex items-center space-x-2 text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                <span>Admin:</span>
+                <span id="header-admin-id" class="text-blue-600 dark:text-blue-400">Loading...</span>
+            </div>
+            <button onclick="toggleDarkMode()" class="p-1.5 md:p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 transition-transform hover:scale-105">
+                <svg id="theme-sun" class="w-4 h-4 md:w-5 md:h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                <svg id="theme-moon" class="w-4 h-4 md:w-5 md:h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+
+        <!-- Top Banner -->
+        <section class="bg-blue-600 dark:bg-blue-900 rounded-2xl shadow-lg p-6 md:p-8 text-white relative overflow-hidden flex-shrink-0">
+            <!-- Decorative Elements -->
+            <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="absolute bottom-0 left-10 -mb-10 w-32 h-32 bg-black/10 rounded-full blur-xl"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl md:text-3xl font-extrabold tracking-tight uppercase">Ready for Ingestion</h2>
+                    <p class="text-xs md:text-sm text-blue-200 mt-2 max-w-xl opacity-90 leading-relaxed">Review the items below that were recently procured and forwarded by the Purchase Department. Move them into the Master Inventory to assign them.</p>
+                </div>
+                <div class="bg-white/10 border border-white/20 px-6 py-4 rounded-xl backdrop-blur-sm self-start md:self-center text-center w-full md:w-auto">
+                    <p class="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Pending Imports</p>
+                    <p id="total-pending-count" class="text-3xl md:text-4xl font-bold mt-1">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bulk Action Bar (Floating) -->
+        <div id="bulk-bar" class="hidden items-center justify-between bg-slate-800 dark:bg-slate-50 text-white dark:text-slate-900 px-6 py-4 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-white/10 dark:bg-black/10 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                </div>
+                <div>
+                    <p id="bulk-count-text" class="text-sm font-bold tracking-tight">0 items selected</p>
+                    <p class="text-[10px] opacity-80 uppercase tracking-widest font-bold">Ready to sync to database</p>
+                </div>
+            </div>
+            <button onclick="executeMoveToStore()" id="bulk-move-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all uppercase tracking-widest shadow-md flex items-center space-x-2">
+                <span>Move to Store</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+        </div>
+
+        <!-- Filter & Search -->
+        <section class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm p-4 md:p-5 flex-shrink-0 flex gap-4 items-center">
+            <div class="relative w-full">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </span>
+                <input type="text" id="search-input" onkeyup="filterItems()" placeholder="Search asset name, model, or serial number..." 
+                       class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-sm transition-all">
+            </div>
+            <button onclick="fetchForwardedData()" class="p-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors shadow-sm" title="Refresh List">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+        </section>
+
+        <!-- Main Data Table -->
+        <section class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm flex-1 flex flex-col overflow-hidden min-h-[400px]">
+            <div class="flex-1 overflow-x-auto custom-scroll">
+                <table class="w-full text-left border-collapse min-w-[900px]">
+                    <thead class="bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-darkBorder">
+                        <tr>
+                            <th class="px-5 py-4 w-12 text-center">
+                                <input type="checkbox" id="master-checkbox" onchange="toggleSelectAll(this)" class="w-4 h-4 rounded border-gray-300 dark:border-slate-600">
+                            </th>
+                            <th class="px-5 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-r border-gray-200 dark:border-darkBorder">Serial Number</th>
+                            <th class="px-5 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-r border-gray-200 dark:border-darkBorder">Asset & Mfr</th>
+                            <th class="px-5 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-r border-gray-200 dark:border-darkBorder">Forward Details</th>
+                            <th class="px-5 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forwarded-table-body" class="divide-y divide-gray-100 dark:divide-darkBorder">
+                        <!-- Loaded via AJAX -->
+                    </tbody>
+                </table>
+                
+                <!-- Loading State -->
+                <div id="loader" class="py-20 text-center flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Checking queues...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden flex-col items-center justify-center py-24 text-slate-400">
+                    <div class="w-20 h-20 bg-slate-100 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-5 border border-slate-200 dark:border-slate-700">
+                        <svg class="w-10 h-10 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <p class="text-base font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">All Caught Up</p>
+                    <p class="text-sm mt-2 font-medium">There are no pending forwarded items from procurement.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl opacity-0 transition-all pointer-events-none z-[200] whitespace-nowrap"></div>
+
+    <script>
+        const activeUserId = localStorage.getItem('active_user_id');
+        let pendingItemsData = [];
+        let selectedIds = new Set();
+
+        // --- Theme Management ---
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        function showStatus(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl transition-all z-[200] ${isError ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-800'}`;
+            t.classList.remove('opacity-0'); t.classList.add('translate-y-[-10px]', 'opacity-100');
+            setTimeout(() => { t.classList.add('opacity-0'); t.classList.remove('translate-y-[-10px]', 'opacity-100'); }, 3000);
+        }
+
+        // Added missing helper functions for standard routing calls
+        function showSuccess(msg) { showStatus(msg, false); }
+        function showError(msg) { showStatus(msg, true); }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!activeUserId) {
+                window.location.href = "../login.html"; 
+                return;
+            }
+            document.getElementById('header-admin-id').innerText = activeUserId;
+            fetchForwardedData();
+        });
+
+        // --- Formatter ---
+        function formatDate(dateStr) {
+            if (!dateStr || dateStr === 'nan') return 'N/A';
+            const d = new Date(dateStr.replace(/-/g, "/"));
+            if (isNaN(d)) return dateStr;
+            return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        // --- Data Fetching ---
+        async function fetchForwardedData() {
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('forwarded-table-body').innerHTML = '';
+            
+            try {
+                const fd = new FormData();
+                fd.append('action', 'fetch');
+                fd.append('admin_id', activeUserId);
+
+                const res = await fetch('../scripts/process_admin_forwarded.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    pendingItemsData = json.data || [];
+                    document.getElementById('total-pending-count').innerText = pendingItemsData.length;
+                    renderTable(pendingItemsData);
+                } else {
+                    showError(json.message);
+                }
+            } catch(e) {
+                console.error("Fetch error:", e);
+                showError("Offline Mode: Using Mock Data");
+                
+                // MOCK DATA
+                pendingItemsData = [
+                    { serial_number: 'SN-XYZ998', item_name: 'Advanced Incubator', item_model: 'INC-200', item_manufacturer: 'GE Healthcare', date_forwarded: '2026-04-20 10:15:00', forwarded_by_user_id: 'EMP-332' },
+                    { serial_number: 'SN-XYZ999', item_name: 'Defibrillator', item_model: 'D-500', item_manufacturer: 'Zoll', date_forwarded: '2026-04-21 08:30:00', forwarded_by_user_id: 'EMP-332' }
+                ];
+                document.getElementById('total-pending-count').innerText = pendingItemsData.length;
+                renderTable(pendingItemsData);
+            }
+            
+            document.getElementById('loader').classList.add('hidden');
+        }
+
+        // --- Rendering ---
+        function renderTable(data) {
+            const tbody = document.getElementById('forwarded-table-body');
+            const empty = document.getElementById('empty-state');
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) {
+                empty.classList.remove('hidden');
+                empty.classList.add('flex');
+                document.getElementById('master-checkbox').checked = false;
+                selectedIds.clear();
+                updateBulkUI();
+                return;
+            }
+            
+            empty.classList.add('hidden');
+            empty.classList.remove('flex');
+
+            data.forEach(item => {
+                const isChecked = selectedIds.has(item.serial_number) ? 'checked' : '';
+                
+                tbody.innerHTML += `
+                    <tr class="table-row-transition hover:bg-slate-50 dark:hover:bg-slate-900/50 group border-b border-gray-100 dark:border-darkBorder cursor-pointer" onclick="document.getElementById('check-${item.serial_number}').click()">
+                        <td class="px-5 py-4 text-center border-r border-gray-200 dark:border-slate-700">
+                            <input type="checkbox" id="check-${item.serial_number}" value="${item.serial_number}" ${isChecked} 
+                                   onclick="event.stopPropagation()" onchange="toggleItemSelection('${item.serial_number}', this.checked)" 
+                                   class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shadow-sm border-gray-300 dark:border-slate-600">
+                        </td>
+                        <td class="px-5 py-4 border-r border-gray-200 dark:border-slate-700 font-mono text-[11px] md:text-sm font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+                            ${item.serial_number}
+                        </td>
+                        <td class="px-5 py-4 border-r border-gray-200 dark:border-slate-700">
+                            <p class="text-xs md:text-sm font-extrabold text-slate-800 dark:text-slate-100 uppercase">${item.item_name}</p>
+                            <p class="text-[9px] md:text-[10px] text-slate-500 font-mono mt-1 uppercase tracking-widest">${item.item_model} • MFR: ${item.item_manufacturer || 'N/A'}</p>
+                        </td>
+                        <td class="px-5 py-4 border-r border-gray-200 dark:border-slate-700">
+                            <p class="text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest mb-1"><span class="text-slate-400 dark:text-slate-500 font-medium">By:</span> ${item.forwarded_by_user_id || 'Unknown'}</p>
+                            <p class="text-[9px] md:text-[10px] text-slate-500 font-medium">${formatDate(item.date_forwarded)}</p>
+                        </td>
+                        <td class="px-5 py-4 text-right">
+                            <button onclick="executeSingleMove(event, '${item.serial_number}')" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-slate-600 dark:text-slate-300 font-bold rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest transition-all shadow-sm">
+                                Move to Store
+                            </button>
+                        </td>
+                    </tr>`;
+            });
+            updateBulkUI();
+        }
+
+        // --- Selection & Filtering ---
+        function toggleItemSelection(id, isChecked) {
+            if(isChecked) selectedIds.add(id); else selectedIds.delete(id);
+            updateBulkUI();
+            
+            // Sync Master Checkbox
+            const allChecked = document.querySelectorAll('#forwarded-table-body input[type="checkbox"]:not(:checked)').length === 0;
+            document.getElementById('master-checkbox').checked = allChecked;
+        }
+
+        function toggleSelectAll(masterCb) {
+            const boxes = document.querySelectorAll('#forwarded-table-body input[type="checkbox"]');
+            boxes.forEach(b => {
+                b.checked = masterCb.checked;
+                if(masterCb.checked) selectedIds.add(b.value); else selectedIds.delete(b.value);
+            });
+            updateBulkUI();
+        }
+
+        function updateBulkUI() {
+            const bar = document.getElementById('bulk-bar');
+            const countText = document.getElementById('bulk-count-text');
+            const count = selectedIds.size;
+
+            if (count > 0) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+                countText.innerText = `${count} item${count !== 1 ? 's' : ''} selected`;
+            } else {
+                bar.classList.add('hidden');
+                bar.classList.remove('flex');
+            }
+        }
+
+        function filterItems() {
+            const term = document.getElementById('search-input').value.toLowerCase().trim();
+            const filtered = pendingItemsData.filter(i => {
+                return (i.item_name && i.item_name.toLowerCase().includes(term)) || 
+                       (i.serial_number && i.serial_number.toLowerCase().includes(term)) ||
+                       (i.item_model && i.item_model.toLowerCase().includes(term));
+            });
+            renderTable(filtered);
+        }
+
+        // --- Action Logic ---
+        function executeSingleMove(event, sn) {
+            event.stopPropagation(); // Prevent row click
+            selectedIds.clear();
+            selectedIds.add(sn);
+            executeMoveToStore();
+        }
+
+        async function executeMoveToStore() {
+            if (selectedIds.size === 0) return;
+            
+            const btn = document.getElementById('bulk-move-btn');
+            const origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>`;
+
+            const serialsArray = Array.from(selectedIds);
+            
+            const fd = new FormData();
+            fd.append('action', 'move_to_store');
+            fd.append('admin_id', activeUserId);
+            fd.append('serials', JSON.stringify(serialsArray));
+
+            try {
+                const res = await fetch('../scripts/process_admin_forwarded.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    showSuccess(json.message);
+                    selectedIds.clear();
+                    document.getElementById('master-checkbox').checked = false;
+                    fetchForwardedData(); // Re-fetch from DB
+                } else {
+                    showError(json.message);
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                }
+            } catch(e) {
+                console.error(e);
+                showError("Network Error. Simulating success.");
+                
+                // Mock behavior for testing
+                setTimeout(() => {
+                    serialsArray.forEach(sn => {
+                        pendingItemsData = pendingItemsData.filter(i => i.serial_number !== sn);
+                    });
+                    selectedIds.clear();
+                    document.getElementById('master-checkbox').checked = false;
+                    document.getElementById('total-pending-count').innerText = pendingItemsData.length;
+                    renderTable(pendingItemsData);
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                }, 800);
+            }
+        }
+    </script>
+</body>
+</html>

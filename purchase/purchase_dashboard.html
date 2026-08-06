@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Panel | AMAR (Advanced Management of Assets and Resources)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        /* DEEP DARK BLACKISH GREEN THEME */
+                        darkBg: '#020b08',     
+                        darkCard: '#051812',   
+                        darkBorder: '#0b2e22', 
+                        lightBg: '#f2fcf7',    
+                        slate: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+                            400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
+                            800: '#1e293b', 900: '#0f172a', 950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .dark-transition { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        
+        .sidebar-link.active { background-color: rgba(16, 185, 129, 0.1); color: #059669; border-left: 4px solid #10b981; }
+        .dark .sidebar-link.active { background-color: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .sidebar-link { transition: all 0.2s ease; border-left: 4px solid transparent; }
+        .sidebar-link:hover:not(.active) { background-color: #f1f5f9; }
+        .dark .sidebar-link:hover:not(.active) { background-color: #0b2e22; }
+        
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #0b2e22; }
+        
+        #sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow-x: hidden; }
+        @media (max-width: 767px) {
+            .sidebar-collapsed { transform: translateX(-100%); }
+            .sidebar-open { transform: translateX(0); }
+            .custom-scroll::-webkit-scrollbar { width: 2px; height: 2px; }
+        }
+        @media (min-width: 768px) {
+            .sidebar-collapsed { width: 0 !important; border-right-width: 0 !important; opacity: 0; pointer-events: none; }
+            .sidebar-open { width: 16rem; opacity: 1; }
+        }
+
+        .table-row-transition { transition: background-color 0.2s ease, opacity 0.3s ease, transform 0.3s ease; }
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms ease-out, transform 200ms ease-out; }
+    </style>
+</head>
+<body class="overflow-hidden bg-lightBg dark:bg-darkBg dark:text-slate-200 relative z-0">
+
+    <!-- Mobile Backdrop -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-[40] hidden backdrop-blur-sm transition-opacity"></div>
+
+    <div class="flex h-screen w-full relative dark-transition">
+        
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-darkCard border-r border-gray-200 dark:border-darkBorder z-[50] flex flex-col sidebar-open md:static transition-all duration-300">
+            <div class="p-4 md:p-6 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center min-w-[16rem] shrink-0">
+                <div class="flex flex-col">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-700 rounded-lg flex items-center justify-center text-white shadow-md shadow-emerald-500/30 border border-emerald-500/20">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-lg font-extrabold text-slate-800 dark:text-white tracking-tight leading-tight">AMAR <span class="text-emerald-600 dark:text-emerald-400">Panel</span></span>
+                            <span class="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-0.5">Workspace</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] md:text-[10px] text-slate-500 dark:text-slate-400 mt-2.5 ml-0.5 font-medium">Logged in as: <span id="sidebar-user-id" class="font-bold text-emerald-600 dark:text-emerald-400">Loading...</span></span>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <nav class="flex-1 mt-2 md:mt-4 overflow-y-auto custom-scroll min-w-[16rem]">
+                <div class="px-2 md:px-3 space-y-1.5 pb-6">
+                    <p class="px-4 text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 mt-2">Main Menu</p>
+                    
+                    <!-- Overview -->
+                    <button onclick="switchTab('overview')" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg active" id="btn-overview">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">Overview</span>
+                    </button>
+
+                    <!-- My Profile -->
+                    <button onclick="switchTab('profile')" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg" id="btn-profile">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">My Profile</span>
+                    </button>
+
+                    <!-- My Items -->
+                    <button onclick="openAppFrame('../common-pages/item_management/my_department_items.html', 'My Items', 'btn-my-items')" id="btn-my-items" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">My Items</span>
+                    </button>
+
+                    <!-- Scan Asset QR -->
+                    <button onclick="openAppFrame('../common-pages/asset_status/asset_fetched_all_data.html', 'Scan Asset QR', 'btn-scan-qr')" id="btn-scan-qr" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">Scan Asset QR</span>
+                    </button>
+
+                    <!-- Support Chat (Collapsible) -->
+                    <div>
+                        <button onclick="toggleSubmenu('sub-support', 'icon-support')" class="w-full flex items-center justify-between px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                <span class="font-semibold text-xs md:text-sm">Support Channels</span>
+                            </div>
+                            <svg id="icon-support" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="sub-support" class="hidden flex-col pl-11 pr-4 py-1 space-y-1">
+                            <button onclick="openAppFrame('purchase_admin_chat.html', 'Admin Support Chat', 'btn-admin-chat')" id="btn-admin-chat" class="sidebar-link w-full flex justify-between items-center px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">
+                                Admin Chat
+                                <span id="nav-support-badge" class="hidden bg-red-500 text-white py-0.5 px-1.5 rounded-full text-[8px] font-bold shadow-sm">0</span>
+                            </button>
+                            <button onclick="openAppFrame('ai_chat.html', 'AI Support Chat', 'btn-ai-chat')" id="btn-ai-chat" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">AI Support Chat</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Approval Workflows (Collapsible) -->
+                    <div>
+                        <button onclick="toggleSubmenu('sub-workflows', 'icon-workflows')" class="w-full flex items-center justify-between px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span class="font-semibold text-xs md:text-sm">Sign-off Workflows</span>
+                            </div>
+                            <svg id="icon-workflows" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="sub-workflows" class="hidden flex-col pl-11 pr-4 py-1 space-y-1">
+                            <button onclick="switchTab('forwarded')" id="btn-forwarded" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">Pending Sign-off</button>
+                            <button onclick="switchTab('history')" id="btn-history" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">Signed History</button>
+                        </div>
+                    </div>
+
+                    <!-- Procurement (Collapsible) -->
+                    <div>
+                        <button onclick="toggleSubmenu('sub-procurement', 'icon-procurement')" class="w-full flex items-center justify-between px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                <span class="font-semibold text-xs md:text-sm">Procurement</span>
+                            </div>
+                            <svg id="icon-procurement" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="sub-procurement" class="hidden flex-col pl-11 pr-4 py-1 space-y-1">
+                            <button onclick="openAppFrame('../common-pages/purchased_items/add_purchased_items.html', 'Log Purchase', 'btn-log-purchase')" id="btn-log-purchase" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">Log Purchase</button>
+                            <button onclick="switchTab('purchased')" id="btn-purchased" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">Purchased Items</button>
+                            <button onclick="switchTab('forward-purchases')" id="btn-forward-purchases" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">Forward to Admin</button>
+                            <button onclick="switchTab('forwarded-history')" id="btn-forwarded-history" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">Forwarded History</button>
+                        </div>
+                    </div>
+
+                    <!-- Issue Reports (Collapsible) -->
+                    <div>
+                        <button onclick="toggleSubmenu('sub-reports', 'icon-reports')" class="w-full flex items-center justify-between px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                <span class="font-semibold text-xs md:text-sm">Issue Reports</span>
+                            </div>
+                            <svg id="icon-reports" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="sub-reports" class="hidden flex-col pl-11 pr-4 py-1 space-y-1">
+                            <button onclick="openAppFrame('../common-pages/asset_report/asset_reporting_own.html', 'Dept Report', 'btn-dept-report')" id="btn-dept-report" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">Dept Report</button>
+                            <button onclick="openAppFrame('../common-pages/asset_report/asset_reporting.html', 'General Report', 'btn-general-report')" id="btn-general-report" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">General Report</button>
+                            <button onclick="openAppFrame('../common-pages/asset_status/asset_report_status.html', 'My Reports', 'btn-my-reports')" id="btn-my-reports" class="sidebar-link w-full text-left px-3 py-2 text-xs md:text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 rounded transition-colors">My Reports</button>
+                        </div>
+                    </div>
+                    
+                    <!-- About Us -->
+                    <button onclick="switchTab('about')" class="sidebar-link w-full flex items-center space-x-3 px-4 py-2 md:py-2.5 text-slate-600 dark:text-slate-300 rounded-lg" id="btn-about">
+                        <svg class="w-4 h-4 md:w-5 md:h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="font-semibold text-xs md:text-sm">About Us</span>
+                    </button>
+                </div>
+            </nav>
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-w-0 transition-all duration-300 bg-lightBg dark:bg-darkBg relative">
+            
+            <!-- Header with Left-Side Controls -->
+            <header class="h-14 md:h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder flex items-center justify-between px-3 md:px-6 shrink-0 shadow-sm z-10 transition-colors duration-300">
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <!-- Hamburger Toggle on the Left -->
+                    <button onclick="toggleSidebar()" class="p-1.5 md:p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                    </button>
+                    <!-- Top Left Title -->
+                    <div class="flex flex-col">
+                        <h1 id="tab-title" class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">System Overview</h1>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="p-1.5 md:p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-105 transition-transform shadow-sm">
+                        <svg id="theme-sun" class="w-4 h-4 md:w-5 md:h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                        <svg id="theme-moon" class="w-4 h-4 md:w-5 md:h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                    <!-- Quick Logout Button -->
+                    <button onclick="logout()" class="p-1.5 md:p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-500 transition-colors shrink-0 focus:outline-none" title="Log Out">
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Tab Content Area -->
+            <div id="content-area" class="flex-1 overflow-y-auto p-3 md:p-6 custom-scroll">
+                
+                <!-- Iframe Tab Container -->
+                <div id="tab-iframe-container" class="tab-pane hidden flex-col h-full w-full relative -m-3 md:-m-6" style="height: calc(100% + 1.5rem);">
+                    <div id="iframe-loader" class="absolute inset-0 flex items-center justify-center bg-lightBg dark:bg-darkBg z-10 hidden">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                    </div>
+                    <iframe id="app-frame" class="w-full h-full border-0 bg-transparent flex-1" src="" onload="document.getElementById('iframe-loader').classList.add('hidden')"></iframe>
+                </div>
+
+                <!-- Overview Tab (Default) -->
+                <div id="tab-overview" class="tab-pane flex flex-col space-y-6 md:space-y-8">
+                    <div class="text-center max-w-2xl mx-auto px-4 mt-2 md:mt-4">
+                        <h2 class="text-2xl md:text-3xl font-light text-slate-800 dark:text-white tracking-wide mb-1">Welcome, <span id="welcome-user-name" class="font-bold text-emerald-600 dark:text-emerald-400">Officer</span></h2>
+                        <p class="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest font-semibold mt-2">AMAR Purchase & Authorization Workspace</p>
+                    </div>
+
+                    <!-- SLIM CARDS GRID -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 md:gap-4 max-w-5xl mx-auto px-2 md:px-4 w-full">
+                        <!-- Pending -->
+                        <a href="#" onclick="switchTab('forwarded')" class="flex flex-col items-center justify-center p-3 md:p-4 bg-white dark:bg-darkCard rounded-xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-amber-500 dark:hover:border-amber-400 transition-all text-center group">
+                            <div class="w-8 h-8 md:w-10 md:h-10 bg-slate-50 dark:bg-slate-800 text-amber-600 dark:text-amber-400 rounded-lg md:rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/30 transition-all">
+                                <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h3 class="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Pending</h3>
+                            <p id="count-pending" class="text-xl md:text-2xl font-extrabold text-amber-600 dark:text-amber-500 mt-1">0</p>
+                        </a>
+                        <!-- Approved -->
+                        <a href="#" onclick="switchTab('history')" class="flex flex-col items-center justify-center p-3 md:p-4 bg-white dark:bg-darkCard rounded-xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-emerald-500 dark:hover:border-emerald-400 transition-all text-center group">
+                            <div class="w-8 h-8 md:w-10 md:h-10 bg-slate-50 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg md:rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 transition-all">
+                                <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h3 class="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Approved</h3>
+                            <p id="count-approved" class="text-xl md:text-2xl font-extrabold text-emerald-600 dark:text-emerald-500 mt-1">0</p>
+                        </a>
+                        <!-- Disapproved -->
+                        <a href="#" onclick="switchTab('history')" class="col-span-2 sm:col-span-1 flex flex-col items-center justify-center p-3 md:p-4 bg-white dark:bg-darkCard rounded-xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-red-500 dark:hover:border-red-400 transition-all text-center group">
+                            <div class="w-8 h-8 md:w-10 md:h-10 bg-slate-50 dark:bg-slate-800 text-red-600 dark:text-red-400 rounded-lg md:rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 group-hover:bg-red-50 dark:group-hover:bg-red-900/30 transition-all">
+                                <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h3 class="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Disapproved</h3>
+                            <p id="count-disapproved" class="text-xl md:text-2xl font-extrabold text-red-600 dark:text-red-500 mt-1">0</p>
+                        </a>
+                    </div>
+
+                    <!-- Quick Actions Grid -->
+                    <div class="mt-4 md:mt-8">
+                        <div class="flex items-center space-x-2 md:space-x-3 mb-3 md:mb-4 max-w-5xl mx-auto px-2 md:px-4">
+                            <span class="w-2 h-2 md:w-3 md:h-3 rounded-full bg-emerald-500"></span>
+                            <h2 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-wider">Quick Actions</h2>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 max-w-5xl mx-auto px-2 md:px-4 w-full">
+                            <!-- Log Purchase -->
+                            <button onclick="openAppFrame('../common-pages/purchased_items/add_purchased_items.html', 'Log Purchase', 'btn-log-purchase')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-emerald-500 dark:hover:border-emerald-400 transition-all text-center group w-full">
+                                <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 transition-all">
+                                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                </div>
+                                <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Log Purchase</h3>
+                            </button>
+                            <!-- My Items -->
+                            <button onclick="openAppFrame('../common-pages/item_management/my_department_items.html', 'My Items', 'btn-my-items')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-emerald-500 dark:hover:border-emerald-400 transition-all text-center group w-full">
+                                <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 transition-all">
+                                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                </div>
+                                <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">My Items</h3>
+                            </button>
+                            <!-- Scan QR -->
+                            <button onclick="openAppFrame('../common-pages/asset_status/asset_fetched_all_data.html', 'Scan Asset QR', 'btn-scan-qr')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-emerald-500 dark:hover:border-emerald-400 transition-all text-center group w-full">
+                                <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 transition-all">
+                                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                                </div>
+                                <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">Scan QR</h3>
+                            </button>
+                            <!-- AI Chat -->
+                            <button onclick="openAppFrame('../ai-engine/ai_chat.html', 'AI Support Chat', 'btn-ai-chat')" class="flex flex-col items-center justify-center p-4 md:p-6 bg-white dark:bg-darkCard rounded-xl md:rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm hover:shadow-md hover:border-emerald-500 dark:hover:border-emerald-400 transition-all text-center group w-full">
+                                <div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 transition-all">
+                                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                </div>
+                                <h3 class="text-xs md:text-sm font-bold text-slate-800 dark:text-white uppercase tracking-tight">AI Chat</h3>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forwarded Reports Tab -->
+                <div id="tab-forwarded" class="tab-pane hidden space-y-4">
+                    <div class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm overflow-hidden">
+                        <div class="p-3 md:p-5 border-b border-gray-200 dark:border-darkBorder bg-slate-50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-3 md:gap-4 justify-between items-start md:items-center">
+                             <div>
+                                <h3 class="font-bold text-slate-800 dark:text-white text-sm md:text-base">Pending Sign-off</h3>
+                                <p class="text-[9px] md:text-[11px] text-slate-500 mt-0.5">Tickets awaiting final approval/disapproval.</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto w-full custom-scroll">
+                            <table class="w-full text-left border-collapse min-w-[700px] md:min-w-[900px] border-y border-gray-200 dark:border-darkBorder shadow-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800 border-b border-gray-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Tkt ID</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Asset & Location</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Forwarded Date</th>
+                                        <th class="px-4 md:px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="forwarded-table-body"></tbody>
+                            </table>
+                            <div id="loader" class="py-16 text-center text-xs font-bold text-emerald-600 animate-pulse uppercase tracking-widest">Syncing Records...</div>
+                            <div id="empty-state" class="hidden py-20 text-center text-slate-400 font-bold text-xs md:text-sm uppercase px-4">No pending procurement requests.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signed History Tab -->
+                <div id="tab-history" class="tab-pane hidden flex-col space-y-4">
+                    <div class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm overflow-hidden">
+                        <div class="p-3 md:p-5 border-b border-gray-200 dark:border-darkBorder bg-slate-50 dark:bg-slate-900/50 flex flex-col justify-between items-start gap-4">
+                            <div class="flex justify-between items-center w-full">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 dark:text-white text-sm md:text-base">Signed Audit History</h3>
+                                    <p class="text-[9px] md:text-[11px] text-slate-500 mt-0.5">Review approved and disapproved maintenance tickets.</p>
+                                </div>
+                                <button onclick="downloadHistoryCSV()" class="px-3 py-1.5 md:px-4 md:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] md:text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center space-x-1.5">
+                                    <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    <span class="hidden sm:inline">Download CSV</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Detailed Filters Section -->
+                            <div class="flex flex-wrap items-end gap-2 md:gap-3 w-full lg:w-auto">
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Search Keywords</label>
+                                    <input type="text" id="filter-signed-search" onkeyup="filterSignedHistory()" placeholder="Search ID, Asset, User..." class="w-full md:w-40 px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</label>
+                                    <select id="filter-signed-status" onchange="filterSignedHistory()" class="w-full md:w-32 px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all cursor-pointer">
+                                        <option value="all">All</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="disapproved">Disapproved</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Signed Before</label>
+                                    <input type="date" id="filter-signed-date" onchange="filterSignedHistory()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto w-full custom-scroll">
+                            <table class="w-full text-left border-collapse min-w-[700px] md:min-w-[900px] border-y border-gray-200 dark:border-darkBorder shadow-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800 border-b border-gray-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Tkt ID</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Asset & Status</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Signed Date</th>
+                                        <th class="px-4 md:px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body"></tbody>
+                            </table>
+                            <div id="history-empty" class="hidden py-20 text-center text-slate-400 font-bold text-xs md:text-sm uppercase px-4">No signed reports match your filters.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchased Items Tab -->
+                <div id="tab-purchased" class="tab-pane hidden space-y-4">
+                    <div class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm overflow-hidden">
+                        <div class="p-3 md:p-5 border-b border-gray-200 dark:border-darkBorder bg-slate-50 dark:bg-slate-900/50 flex flex-col justify-between items-start gap-4">
+                            <div class="flex justify-between items-center w-full">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 dark:text-white text-sm md:text-base">All Purchased Items</h3>
+                                    <p class="text-[9px] md:text-[11px] text-slate-500 mt-0.5">Master list of all procured assets</p>
+                                </div>
+                                <button onclick="downloadPurchasedCSV()" class="px-3 py-1.5 md:px-4 md:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] md:text-sm font-bold rounded-lg shadow-sm transition-colors flex items-center space-x-1.5">
+                                    <svg class="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    <span class="hidden sm:inline">Download CSV</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Detailed Filters Section -->
+                            <div class="flex flex-wrap items-end gap-2 md:gap-3 w-full lg:w-auto">
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Search Keywords</label>
+                                    <input type="text" id="filter-pur-search" onkeyup="filterPurchased()" placeholder="Search Name, SN, Mfr..." class="w-full md:w-40 px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Added By User</label>
+                                    <input type="text" id="filter-pur-user" onkeyup="filterPurchased()" placeholder="User ID..." class="w-full md:w-32 px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Purchased Before</label>
+                                    <input type="date" id="filter-pur-date" onchange="filterPurchased()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Forwarded Before</label>
+                                    <input type="date" id="filter-pur-fwd-date" onchange="filterPurchased()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">In Inventory Before</label>
+                                    <input type="date" id="filter-pur-inv-date" onchange="filterPurchased()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Is Forwarded?</label>
+                                    <select id="filter-pur-is-fwd" onchange="filterPurchased()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all cursor-pointer">
+                                        <option value="all">All</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">In Inventory?</label>
+                                    <select id="filter-pur-is-inv" onchange="filterPurchased()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all cursor-pointer">
+                                        <option value="all">All</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto w-full custom-scroll">
+                            <table class="w-full text-left border-collapse min-w-[800px] md:min-w-[1100px] border-y border-gray-200 dark:border-darkBorder shadow-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800 border-b border-gray-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">SN / ID</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Item Details</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Manufacturer</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Purchased</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Forwarded</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">In Inventory</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">User Trace</th>
+                                        <th class="px-4 md:px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="purchased-table-body"></tbody>
+                            </table>
+                            <div id="purchased-empty" class="hidden py-20 text-center text-slate-400 font-bold text-xs md:text-sm uppercase px-4">No purchased items found.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forward Purchases Tab -->
+                <div id="tab-forward-purchases" class="tab-pane hidden flex-col space-y-4">
+                    
+                    <!-- Bulk Action Bar -->
+                    <div id="forward-bulk-bar" class="hidden items-center justify-between bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-xl animate-in fade-in duration-300">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
+                            <div>
+                                <p id="forward-bulk-count" class="text-sm font-bold tracking-tight">0 items selected</p>
+                                <p class="text-[10px] opacity-80 uppercase tracking-widest font-medium">Ready to Forward</p>
+                            </div>
+                        </div>
+                        <button id="forward-bulk-btn" onclick="executeForwardBulk()" class="px-5 py-2 bg-white text-emerald-600 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all uppercase tracking-widest shadow-md">Forward Selected</button>
+                    </div>
+
+                    <div class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm overflow-hidden">
+                        <div class="p-3 md:p-5 border-b border-gray-200 dark:border-darkBorder bg-slate-50 dark:bg-slate-900/50 flex flex-col justify-between items-start gap-4">
+                            <div>
+                                <h3 class="font-bold text-slate-800 dark:text-white text-sm md:text-base">Pending Forward</h3>
+                                <p class="text-[9px] md:text-[11px] text-slate-500 mt-0.5">Select items to forward to Admin Inventory</p>
+                            </div>
+                            
+                            <!-- Detailed Filters Section for Forwarding -->
+                            <div class="flex flex-wrap items-end gap-2 md:gap-3 w-full lg:w-auto">
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Search Keywords</label>
+                                    <input type="text" id="filter-fwd-pur-search" onkeyup="filterForwardPurchased()" placeholder="Search Name, SN, Mfr..." class="w-full md:w-40 px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Purchased Before</label>
+                                    <input type="date" id="filter-fwd-pur-date" onchange="filterForwardPurchased()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto w-full custom-scroll">
+                            <table class="w-full text-left border-collapse min-w-[700px] md:min-w-[900px] border-y border-gray-200 dark:border-darkBorder shadow-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800 border-b border-gray-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700 w-12 text-center">
+                                            <input type="checkbox" id="forward-master-cb" onchange="toggleAllForward(this)" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
+                                        </th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">SN / ID</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Item Details</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Manufacturer</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Purchased</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="forward-purchases-table-body"></tbody>
+                            </table>
+                            <div id="forward-purchases-empty" class="hidden py-20 text-center text-slate-400 font-bold text-xs md:text-sm uppercase px-4">No items pending forward.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forwarded History Tab -->
+                <div id="tab-forwarded-history" class="tab-pane hidden flex-col space-y-4">
+                    <div class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm overflow-hidden">
+                        <div class="p-3 md:p-5 border-b border-gray-200 dark:border-darkBorder bg-slate-50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-3 md:gap-4 justify-between items-start md:items-center">
+                            <div>
+                                <h3 class="font-bold text-slate-800 dark:text-white text-sm md:text-base">Forwarded Items History</h3>
+                                <p class="text-[9px] md:text-[11px] text-slate-500 mt-0.5">Review items transferred to Admin. Rollback allowed within 24 hours.</p>
+                            </div>
+                            <div class="flex flex-wrap items-end gap-2 md:gap-3 w-full lg:w-auto">
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Search Keywords</label>
+                                    <input type="text" id="filter-his-search" onkeyup="filterForwardedHistory()" placeholder="Search Name, SN, Mfr..." class="w-full md:w-40 px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Forwarded Before</label>
+                                    <input type="date" id="filter-his-fwd-date" onchange="filterForwardedHistory()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">In Inventory Before</label>
+                                    <input type="date" id="filter-his-inv-date" onchange="filterForwardedHistory()" class="w-full md:w-auto px-2 py-1.5 md:px-3 md:py-1.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white transition-all">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto w-full custom-scroll">
+                            <table class="w-full text-left border-collapse min-w-[700px] md:min-w-[900px] border-y border-gray-200 dark:border-darkBorder shadow-sm">
+                                <thead class="bg-slate-100 dark:bg-slate-800 border-b border-gray-300 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">SN / ID</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Item Details</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Purchased</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">Forwarded</th>
+                                        <th class="px-4 md:px-6 py-3 border-r border-gray-300 dark:border-slate-700">User Trace</th>
+                                        <th class="px-4 md:px-6 py-3 text-right">Rollback Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="forwarded-history-body"></tbody>
+                            </table>
+                            <div id="forwarded-history-empty" class="hidden py-20 text-center text-slate-400 font-bold text-xs md:text-sm uppercase px-4">No forwarded items found.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full-Page Classic Profile Tab -->
+                <div id="tab-profile" class="tab-pane hidden flex-col w-full max-w-5xl mx-auto py-4 md:py-8 px-2 sm:px-4 pb-12">
+                    <div class="bg-white dark:bg-darkCard rounded-[2rem] border border-gray-200 dark:border-darkBorder shadow-lg overflow-hidden flex flex-col md:flex-row">
+                        <!-- Left: Avatar & Basic Info -->
+                        <div class="md:w-1/3 bg-slate-50 dark:bg-slate-800/50 p-8 md:p-10 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-200 dark:border-darkBorder relative">
+                            <div class="absolute top-0 left-0 w-full h-32 bg-emerald-600/10 dark:bg-emerald-500/5 rounded-b-[3rem]"></div>
+                            <div class="w-28 h-28 md:w-40 md:h-40 rounded-full border-4 border-white dark:border-slate-700 shadow-xl overflow-hidden mb-6 relative z-10">
+                                <img id="profile-avatar" src="" alt="Profile Avatar" class="w-full h-full object-cover">
+                            </div>
+                            <h2 id="profile-name" class="text-2xl font-bold text-slate-800 dark:text-white text-center tracking-tight z-10">LOADING...</h2>
+                            <p id="profile-role" class="text-emerald-600 dark:text-emerald-400 font-bold mt-2 uppercase text-[10px] tracking-widest text-center z-10">Purchase Officer</p>
+                            <div class="mt-6 z-10">
+                                <span class="px-4 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-full uppercase tracking-widest border border-emerald-200 dark:border-emerald-800/50">Active Account</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Detailed Info -->
+                        <div class="md:w-2/3 p-6 sm:p-8 md:p-12 bg-white dark:bg-darkCard flex flex-col">
+                            <div class="flex justify-between items-center mb-6 md:mb-8 pb-4 border-b border-gray-100 dark:border-darkBorder">
+                                <h3 class="text-lg font-bold text-slate-800 dark:text-white tracking-tight">Account Details</h3>
+                                <button onclick="openEditProfileModal()" class="flex items-center space-x-2 px-4 py-2 bg-slate-100 hover:bg-emerald-50 dark:bg-slate-800 dark:hover:bg-emerald-900/30 text-slate-700 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400 rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-gray-200 dark:border-slate-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    <span>Edit</span>
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">User ID / Employee ID</label>
+                                        <p id="profile-id" class="text-base font-mono font-medium text-slate-800 dark:text-slate-200">LOADING...</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Official Email</label>
+                                        <p id="profile-email" class="text-base font-medium text-slate-800 dark:text-slate-200 break-all">loading...</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Department</label>
+                                        <p id="profile-dept" class="text-base font-medium text-slate-800 dark:text-slate-200 uppercase">loading...</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Date Joined</label>
+                                        <p id="profile-joined" class="text-base font-medium text-slate-800 dark:text-slate-200">loading...</p>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 mt-4 border-t border-gray-100 dark:border-darkBorder grid grid-cols-1 sm:grid-cols-2 gap-6 pb-2 md:pb-4">
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">Password</label>
+                                        <p class="text-lg font-bold text-slate-800 dark:text-slate-200 tracking-[0.2em] mt-0.5 leading-none">••••••••</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-slate-400 uppercase tracking-widest font-bold block mb-1">System Access</label>
+                                        <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-tight mt-1">Purchase Control</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Us Tab -->
+                <div id="tab-about" class="tab-pane hidden flex-col h-full items-center justify-center">
+                    <div class="max-w-3xl mx-auto text-center space-y-6 md:space-y-8 py-10 px-4">
+                        <div class="w-20 h-20 md:w-24 md:h-24 bg-emerald-600 rounded-[1.5rem] md:rounded-[2rem] mx-auto flex items-center justify-center text-white text-4xl md:text-5xl font-bold shadow-2xl rotate-3">A</div>
+                        <h2 class="text-2xl md:text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight uppercase">AMAR <span class="text-emerald-600 dark:text-emerald-400">System v2.5</span></h2>
+                        <p class="text-sm md:text-base text-gray-500 dark:text-gray-400 max-w-xl mx-auto leading-relaxed">Advanced Management of Assets and Resources (AMAR) is a specialized digital solution for modern hospitals. AMAR automates daily monitoring and facility management for healthcare administrators.</p>
+                        
+                        <div class="mt-4 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg text-xs md:text-sm font-semibold inline-block border border-amber-200 dark:border-amber-800">
+                            ⚠️ This site is currently in production, and will be updated soon.
+                        </div>
+
+                        <div class="pt-8 md:pt-10 flex justify-center space-x-6 md:space-x-8">
+                            <div class="text-center">
+                                <p class="text-2xl md:text-3xl font-bold text-emerald-600 dark:text-emerald-400">100%</p>
+                                <p class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-widest mt-1">Digital Audit</p>
+                            </div>
+                            <div class="text-center border-x border-gray-200 dark:border-darkBorder px-6 md:px-8">
+                                <p class="text-2xl md:text-3xl font-bold text-emerald-600 dark:text-emerald-400">FMS</p>
+                                <p class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-widest mt-1">Compliant</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer (Only visible on dashboard tab) -->
+                <footer id="main-footer" class="mt-auto pt-8 md:pt-12 w-full transition-colors duration-300">
+                    <div class="border-t border-gray-200 dark:border-darkBorder pt-6 pb-4 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] md:text-xs text-slate-500 dark:text-slate-400">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-700 dark:text-slate-300">AMAR System &copy; 2026</span>
+                        </div>
+                        
+                        <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 font-medium">
+                            <a href="#" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Privacy Policy</a>
+                            <a href="#" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Terms of Service</a>
+                            <a href="#" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">System Status</a>
+                        </div>
+                        
+                        <p class="font-medium text-center md:text-right">
+                            Optimized for <span class="text-slate-700 dark:text-slate-300">5th Edition</span> Standards
+                        </p>
+                    </div>
+                </footer>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- UNIFIED DETAILS VIEW MODAL (Classic Mobile Friendly) -->
+    <div id="view-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative w-full max-w-3xl bg-white dark:bg-darkCard rounded-2xl md:rounded-[2rem] shadow-2xl border dark:border-darkBorder flex flex-col max-h-[95vh] sm:max-h-[90vh] overflow-hidden modal-enter modal-enter-active">
+            
+            <!-- Sticky Header inside Modal -->
+            <div class="p-4 sm:p-6 border-b dark:border-darkBorder flex justify-between items-center shrink-0 bg-white dark:bg-darkCard z-10">
+                <div class="flex flex-col">
+                    <h3 class="font-bold dark:text-white text-sm md:text-lg uppercase tracking-tight">Full Audit Record: <span id="modal-report-id" class="text-emerald-600"></span></h3>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Asset Management System</p>
+                </div>
+                <button onclick="closeModal()" class="p-2 text-slate-400 hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/20 rounded-full transition-colors"><svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            
+            <!-- Scrollable Body with Classic Cards -->
+            <div class="p-4 sm:p-6 md:p-8 overflow-y-auto custom-scroll space-y-4 sm:space-y-6 bg-slate-50/50 dark:bg-darkBg/50 flex-1">
+                
+                <!-- Classic Card: Asset Info -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-3 border-b border-gray-50 dark:border-darkBorder pb-2">Asset & Location</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
+                        <div class="flex justify-between sm:block border-b sm:border-0 border-gray-50 dark:border-darkBorder pb-2 sm:pb-0"><label class="text-[10px] font-bold text-slate-400 uppercase flex items-center">Asset Name</label><p id="modal-asset-name" class="text-xs sm:text-sm font-bold dark:text-white uppercase text-right sm:text-left sm:mt-1"></p></div>
+                        <div class="flex justify-between sm:block border-b sm:border-0 border-gray-50 dark:border-darkBorder pb-2 sm:pb-0"><label class="text-[10px] font-bold text-slate-400 uppercase flex items-center">Department</label><p id="modal-dept" class="text-xs sm:text-sm font-bold dark:text-white uppercase text-right sm:text-left sm:mt-1"></p></div>
+                        <div class="flex justify-between sm:block border-b sm:border-0 border-gray-50 dark:border-darkBorder pb-2 sm:pb-0"><label class="text-[10px] font-bold text-slate-400 uppercase flex items-center">Floor / Bldg</label><p id="modal-floor" class="text-xs sm:text-sm font-bold dark:text-white uppercase text-right sm:text-left sm:mt-1"></p></div>
+                        <div class="flex justify-between sm:block"><label class="text-[10px] font-bold text-slate-400 uppercase flex items-center">Reported By</label><p id="modal-user-id" class="text-xs sm:text-sm font-bold text-emerald-600 uppercase text-right sm:text-left sm:mt-1"></p></div>
+                    </div>
+                </div>
+
+                <!-- Classic Card: Issue Details -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-3 border-b border-gray-50 dark:border-darkBorder pb-2">Technical Assessment</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase block mb-2">Failure Description</label>
+                            <div id="modal-desc" class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic bg-slate-50 dark:bg-slate-900/50 p-3 sm:p-4 rounded-lg border dark:border-darkBorder"></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="p-3 sm:p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/30 flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Procurement Req.</span>
+                                <p id="val-parts" class="font-extrabold text-emerald-600 text-xs sm:text-sm"></p>
+                            </div>
+                            <div class="p-3 sm:p-4 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Priority</span>
+                                <p id="modal-priority" class="font-extrabold text-red-500 text-xs sm:text-sm uppercase tracking-tighter"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classic Card: Mobile-Friendly Timeline -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-3 border-b border-gray-50 dark:border-darkBorder pb-2">Verification Trail</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-4 text-left sm:text-center">
+                        <div class="flex sm:block justify-between items-center p-2 sm:p-0 bg-slate-50 sm:bg-transparent dark:bg-slate-900/50 sm:dark:bg-transparent rounded sm:rounded-none"><span class="text-[10px] text-slate-500 uppercase font-bold sm:block sm:mb-1">Reported</span><p id="t-reported" class="text-[10px] sm:text-xs font-bold dark:text-slate-300">...</p></div>
+                        <div class="flex sm:block justify-between items-center p-2 sm:p-0 bg-slate-50 sm:bg-transparent dark:bg-slate-900/50 sm:dark:bg-transparent rounded sm:rounded-none"><span class="text-[10px] text-slate-500 uppercase font-bold sm:block sm:mb-1">Verified</span><p id="t-verified" class="text-[10px] sm:text-xs font-bold dark:text-slate-300">...</p></div>
+                        <div class="flex sm:block justify-between items-center p-2 sm:p-0 bg-emerald-50 sm:bg-transparent dark:bg-emerald-900/10 sm:dark:bg-transparent rounded sm:rounded-none border border-emerald-100 dark:border-transparent sm:border-0"><span class="text-[10px] text-emerald-500 uppercase font-bold sm:block sm:mb-1">Forwarded</span><p id="t-forwarded" class="text-[10px] sm:text-xs font-bold text-emerald-600">...</p></div>
+                        <div class="flex sm:block justify-between items-center p-2 sm:p-0 bg-slate-50 sm:bg-transparent dark:bg-slate-900/50 sm:dark:bg-transparent rounded sm:rounded-none"><span class="text-[10px] text-slate-500 uppercase font-bold sm:block sm:mb-1">Resolved</span><p id="t-resolved" class="text-[10px] sm:text-xs font-bold dark:text-slate-300">...</p></div>
+                        <div class="flex sm:block justify-between items-center p-2 sm:p-0 bg-slate-50 sm:bg-transparent dark:bg-slate-900/50 sm:dark:bg-transparent rounded sm:rounded-none"><span id="label-signed" class="text-[10px] text-slate-500 uppercase font-bold sm:block sm:mb-1">Signed</span><p id="t-signed" class="text-[10px] sm:text-xs font-bold text-slate-400">UNSIGNED</p></div>
+                    </div>
+                </div>
+
+                <!-- Classic Card: Gallery -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-100 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Attached Evidence</h4>
+                    <div id="modal-photos-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+                    <p id="modal-no-photos" class="hidden text-xs text-slate-500 italic text-center py-4">No media attached to this ticket.</p>
+                </div>
+            </div>
+
+            <!-- Footer Action Bar (Full width buttons on mobile) -->
+            <div class="p-4 sm:p-6 border-t dark:border-darkBorder bg-white dark:bg-darkCard flex flex-col sm:flex-row justify-center gap-3 shrink-0 rounded-b-2xl md:rounded-b-[2rem]">
+                <button id="modal-approve-btn" class="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 text-white font-extrabold rounded-xl shadow-lg hover:bg-emerald-700 transition-all uppercase text-xs tracking-widest flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Approve</span>
+                </button>
+                <button id="modal-disapprove-btn" class="w-full sm:w-auto px-8 py-3.5 bg-red-600 text-white font-extrabold rounded-xl shadow-lg hover:bg-red-700 transition-all uppercase text-xs tracking-widest flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <span>Disapprove</span>
+                </button>
+                <button id="modal-rollback-btn" class="hidden w-full sm:w-auto px-8 py-3.5 bg-slate-800 dark:bg-slate-700 text-white font-extrabold rounded-xl shadow-lg hover:bg-black transition-all uppercase text-xs tracking-widest text-center">Rollback Signature</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX IMAGE VIEWER -->
+    <div id="image-viewer-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/95 backdrop-blur-md">
+        <button onclick="closeImageViewer()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-red-400 p-2 md:p-3 bg-black/50 hover:bg-black/80 rounded-full z-10 transition-all">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex items-center space-x-2 md:space-x-3 bg-slate-900/80 p-2 md:p-3 rounded-2xl z-10 border border-slate-700 shadow-2xl backdrop-blur-sm">
+            <button onclick="zoomImage(-0.2)" class="text-slate-300 p-2 hover:bg-slate-700 hover:text-white rounded-xl transition-all"><svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path></svg></button>
+            <button onclick="resetZoom()" class="text-slate-300 p-2 hover:bg-slate-700 hover:text-white rounded-xl transition-all"><svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg></button>
+            <button onclick="zoomImage(0.2)" class="text-slate-300 p-2 hover:bg-slate-700 hover:text-white rounded-xl transition-all"><svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg></button>
+            <div class="w-px h-5 md:h-6 bg-slate-700 mx-1 md:mx-2"></div>
+            <a id="viewer-download-btn" href="#" download class="text-emerald-400 p-2 hover:bg-slate-700 hover:text-emerald-300 rounded-xl transition-all flex items-center space-x-1.5 md:space-x-2 px-3 md:px-4 group">
+                <svg class="w-5 h-5 md:w-6 md:h-6 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span class="text-[10px] font-bold uppercase tracking-widest hidden sm:inline">Download</span>
+            </a>
+        </div>
+        <div class="w-full h-full flex items-center justify-center p-4 overflow-auto scroll-smooth"><img id="viewer-image" src="" class="max-w-[95vw] max-h-[85vh] object-contain transition-transform duration-200" style="transform: scale(1);"></div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="fixed inset-0 z-[120] hidden items-center justify-center px-4 bg-black/70 backdrop-blur-md">
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-3xl shadow-2xl border dark:border-darkBorder flex flex-col modal-enter modal-enter-active">
+            <div class="p-5 md:p-6 border-b dark:border-darkBorder flex justify-between items-center text-center">
+                <h3 class="text-sm md:text-base font-bold dark:text-white uppercase tracking-tight">Account Settings</h3>
+                <button onclick="closeEditProfileModal()" class="text-slate-400 hover:text-red-500 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <form id="edit-profile-form" onsubmit="submitEditProfile(event)" class="p-5 md:p-6 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Display Name</label>
+                    <input type="text" id="edit-profile-name" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email Address</label>
+                    <input type="email" id="edit-profile-email" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Department</label>
+                    <select id="edit-profile-dept" required disabled class="w-full px-4 py-2.5 md:py-3 bg-slate-100 dark:bg-slate-800 border dark:border-darkBorder rounded-xl outline-none text-slate-500 dark:text-slate-400 cursor-not-allowed text-xs md:text-sm transition-all">
+                        <option value="nan">None / General (nan)</option>
+                    </select>
+                    <p class="text-[8px] text-slate-400 mt-1">* Contact administrator to change department.</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">New Password (optional)</label>
+                    <input type="password" id="edit-profile-password" placeholder="••••••••" class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all placeholder-slate-400">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" id="btn-save-profile" class="w-full py-3 md:py-3.5 bg-emerald-600 text-white font-bold rounded-xl shadow-lg hover:bg-emerald-700 transition-all uppercase text-[10px] tracking-widest">Update Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Purchase Modal -->
+    <div id="edit-purchase-modal" class="fixed inset-0 z-[120] hidden items-center justify-center px-4 bg-black/70 backdrop-blur-md">
+        <div class="relative w-full max-w-md bg-white dark:bg-darkCard rounded-3xl shadow-2xl border dark:border-darkBorder flex flex-col modal-enter modal-enter-active">
+            <div class="p-5 md:p-6 border-b dark:border-darkBorder flex justify-between items-center text-center">
+                <h3 class="text-sm md:text-base font-bold dark:text-white uppercase tracking-tight">Edit Purchased Item</h3>
+                <button onclick="closeEditPurchaseModal()" class="text-slate-400 hover:text-red-500 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <form id="edit-purchase-form" onsubmit="submitEditPurchase(event)" class="p-5 md:p-6 space-y-4">
+                <input type="hidden" id="edit-pur-original-sn">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Serial Number</label>
+                    <input type="text" id="edit-pur-sn" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Item Name</label>
+                    <input type="text" id="edit-pur-name" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Model Number</label>
+                    <input type="text" id="edit-pur-model" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Manufacturer</label>
+                    <input type="text" id="edit-pur-mfr" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Purchase Date</label>
+                    <input type="date" id="edit-pur-date" required class="w-full px-4 py-2.5 md:py-3 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder rounded-xl outline-none focus:ring-1 focus:ring-emerald-500 dark:text-white text-xs md:text-sm transition-all">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" id="btn-save-edit-pur" class="w-full py-3 md:py-3.5 bg-emerald-600 text-white font-bold rounded-xl shadow-lg hover:bg-emerald-700 transition-all uppercase text-[10px] tracking-widest">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-purchase-modal" class="fixed inset-0 z-[120] hidden items-center justify-center px-4 bg-black/70 backdrop-blur-md">
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-3xl shadow-2xl border dark:border-darkBorder flex flex-col p-8 text-center modal-enter modal-enter-active">
+            <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-5 border border-red-200 dark:border-red-800">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2 uppercase tracking-tight">Delete Record?</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">This action cannot be undone. It will be permanently removed from the purchase and forwarding database.</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="button" onclick="closeDeletePurchaseModal()" class="w-full sm:w-1/2 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors border border-transparent dark:border-darkBorder">Cancel</button>
+                <button type="button" id="btn-confirm-delete-pur" onclick="executeDeletePurchase()" class="w-full sm:w-1/2 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-colors shadow-sm">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rollback Confirmation Modal -->
+    <div id="rollback-forward-modal" class="fixed inset-0 z-[120] hidden items-center justify-center px-4 bg-black/70 backdrop-blur-md">
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-3xl shadow-2xl border dark:border-darkBorder flex flex-col p-8 text-center modal-enter modal-enter-active">
+            <div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-5 border border-amber-200 dark:border-amber-800">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2 uppercase tracking-tight">Confirm Rollback?</h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">This item will be returned to your pending queue and removed from Admin visibility.</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="button" onclick="closeRollbackForwardModal()" class="w-full sm:w-1/2 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs uppercase tracking-widest transition-colors border border-transparent dark:border-darkBorder">Cancel</button>
+                <button type="button" id="btn-confirm-rollback" onclick="executeRollbackForward()" class="w-full sm:w-1/2 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs uppercase tracking-widest transition-colors shadow-sm">Yes, Rollback</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl text-[10px] sm:text-sm font-bold text-white shadow-2xl opacity-0 transition-all pointer-events-none z-[500] whitespace-nowrap"></div>
+    
+    <script>
+        // --- SAFE DOM MANIPULATION ---
+        function safeSetText(id, text) { const el = document.getElementById(id); if (el) el.innerText = text || ''; }
+        function safeSetSrc(id, src) { const el = document.getElementById(id); if (el) el.src = src || ''; }
+
+        function toggleSubmenu(menuId, iconId) {
+            const menu = document.getElementById(menuId);
+            const icon = document.getElementById(iconId);
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                menu.classList.add('flex');
+                if(icon) icon.classList.add('rotate-180');
+            } else {
+                menu.classList.add('hidden');
+                menu.classList.remove('flex');
+                if(icon) icon.classList.remove('rotate-180');
+            }
+        }
+
+        // --- THEME & STATUS UTILS ---
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        function showStatus(msg, isError = false) {
+            const t = document.getElementById('toast');
+            if(!t) return;
+            t.innerText = msg;
+            t.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl text-[10px] sm:text-sm font-bold text-white shadow-2xl transition-all z-[500] whitespace-nowrap ${isError ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-800'}`;
+            t.classList.remove('opacity-0'); t.classList.add('translate-y-[-10px]', 'opacity-100');
+            setTimeout(() => { t.classList.add('opacity-0'); t.classList.remove('translate-y-[-10px]', 'opacity-100'); }, 3000);
+        }
+        
+        function showSuccess(msg) { showStatus(msg, false); }
+        function showError(msg) { showStatus(msg, true); }
+
+        // --- DATA FETCHING LOGIC ---
+        const activeUserId = localStorage.getItem('active_user_id');
+        let currentActiveUserData = {};
+        let departmentsData = [];
+        let allPurchasedItems = [];
+        let currentFilteredPurchasedItems = []; // Stores filtered data for CSV export
+        let selectedForwardItems = new Set();
+        let forwardedData = [];
+        let historyData = [];
+        let currentExportHistory = []; // Stores filtered history data for CSV export
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!activeUserId) {
+                // window.location.href = "../login.html"; 
+                // return;
+            }
+            await fetchDepartments();
+            await fetchUserProfile();
+            fetchOverviewData();
+            fetchPurchasedItemsData();
+
+            fetchSupportUnreadCount();
+            setInterval(fetchSupportUnreadCount, 5000);
+        });
+
+        // --- IFRAME APP LOADER LOGIC ---
+        function openAppFrame(url, title, btnId) {
+            if (window.innerWidth < 768 && isSidebarOpen) toggleSidebar();
+            
+            // Hide all regular tabs
+            document.querySelectorAll('.tab-pane').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            });
+            
+            // Show iframe tab container
+            const iframeTab = document.getElementById('tab-iframe-container');
+            iframeTab.classList.remove('hidden');
+            iframeTab.classList.add('flex');
+            
+            // Set src and display loader if URL changed
+            const frame = document.getElementById('app-frame');
+            const targetUrl = new URL(url, window.location.href).href;
+            
+            if (frame.src !== targetUrl) {
+                document.getElementById('iframe-loader').classList.remove('hidden');
+                frame.src = url;
+            }
+            
+            // Update Title
+            document.getElementById('tab-title').innerText = title;
+            
+            // Update Active State on Sidebar Button
+            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+            const sideBtn = document.getElementById(btnId);
+            if (sideBtn) sideBtn.classList.add('active');
+        }
+
+        async function fetchSupportUnreadCount() {
+            try {
+                const fd = new FormData();
+                fd.append('action', 'get_unread_count');
+                fd.append('admin_id', activeUserId);
+                
+                const res = await fetch('../common-pages/scripts/process_admin_support.php', { method: 'POST', body: fd });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.status === 'success') {
+                        const badge = document.getElementById('nav-support-badge');
+                        if (json.unread_count > 0) {
+                            badge.innerText = json.unread_count;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                }
+            } catch (e) { 
+                console.error("Error fetching unread count", e); 
+            }
+        }
+
+        async function fetchDepartments() {
+            try {
+                const response = await fetch('../common-pages/scripts/register.php?action=get_departments', { method: 'GET' });
+                if (response.ok) {
+                    const json = await response.json();
+                    if (json.status === 'success') {
+                        departmentsData = json.data || [];
+                        const deptSelect = document.getElementById('edit-profile-dept');
+                        if (deptSelect) {
+                            let opts = '<option value="nan">None / General (nan)</option>';
+                            departmentsData.forEach(d => {
+                                opts += `<option value="${d.dept_id}">${d.dept_name} (${d.dept_id})</option>`;
+                            });
+                            deptSelect.innerHTML = opts;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load departments:", e);
+            }
+        }
+
+        async function fetchUserProfile() {
+            try {
+                const formData = new FormData();
+                formData.append('user_id', activeUserId);
+
+                const response = await fetch('../common-pages/scripts/get_user_data.php', { method: 'POST', body: formData });
+                
+                if (!response.ok) throw new Error("HTTP Error " + response.status);
+                
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error("Invalid server response format.");
+                }
+
+                if (result.status === 'success') {
+                    updateUIWithUserData(result.data);
+                } else {
+                    throw new Error(result.message); 
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error.message);
+                showStatus("Database offline. Running in preview mode.", true);
+                loadMockUserData();
+            }
+        }
+
+        function updateUIWithUserData(userData) {
+            currentActiveUserData = userData; 
+            const safeName = userData.user_name || 'User';
+            const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(safeName)}`;
+
+            safeSetText('sidebar-user-id', userData.user_id);
+            const firstName = safeName.split(' ')[0];
+            safeSetText('welcome-user-name', firstName);
+
+            safeSetText('profile-name', safeName);
+            safeSetText('profile-id', userData.user_id);
+            safeSetText('profile-email', userData.user_mail || 'No Email Provided');
+            safeSetSrc('profile-avatar', avatarUrl);
+
+            let deptDisplay = "None / General (nan)";
+            if (userData.dept_id && userData.dept_id !== 'nan') {
+                const deptObj = departmentsData.find(d => d.dept_id === userData.dept_id);
+                if (deptObj) deptDisplay = `${deptObj.dept_name} (${userData.dept_id})`;
+                else deptDisplay = userData.dept_id; 
+            }
+            safeSetText('profile-dept', deptDisplay);
+
+            if (userData.date_created) {
+                const d = new Date(userData.date_created);
+                safeSetText('profile-joined', isNaN(d) ? userData.date_created : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }));
+            }
+
+            let roleLabel = "Standard Portal User";
+            if (userData.roles_decoded) {
+                if (userData.roles_decoded.admin === "1" || userData.roles_decoded.admin === 1) {
+                    roleLabel = "System Administrator";
+                } else if (userData.roles_decoded.purchase === "1" || userData.roles_decoded.purchase === 1) {
+                    roleLabel = "Purchase Officer";
+                }
+            }
+            safeSetText('profile-role', roleLabel);
+        }
+
+        function loadMockUserData() {
+            updateUIWithUserData({
+                user_id: activeUserId || "EMP-000",
+                user_name: "Demo Staff",
+                user_mail: "demo@hospital.com",
+                dept_id: "nan",
+                date_created: "2026-01-15",
+                roles_decoded: { user: "1", admin: "0", purchase: "0" }
+            });
+        }
+
+        // --- EDIT PROFILE MODAL LOGIC ---
+        function openEditProfileModal() {
+            document.getElementById('edit-profile-name').value = currentActiveUserData.user_name || '';
+            document.getElementById('edit-profile-email').value = currentActiveUserData.user_mail || '';
+            document.getElementById('edit-profile-dept').value = currentActiveUserData.dept_id || 'nan';
+            document.getElementById('edit-profile-password').value = ''; 
+            document.getElementById('edit-profile-modal').classList.remove('hidden');
+            document.getElementById('edit-profile-modal').classList.add('flex');
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('edit-profile-modal').classList.add('hidden');
+            document.getElementById('edit-profile-modal').classList.remove('flex');
+        }
+
+        async function submitEditProfile(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-profile');
+            btn.disabled = true; btn.innerText = "Saving..."; 
+
+            const formData = new FormData();
+            formData.append('user_id', activeUserId);
+            formData.append('user_name', document.getElementById('edit-profile-name').value);
+            formData.append('user_mail', document.getElementById('edit-profile-email').value);
+            formData.append('dept_id', document.getElementById('edit-profile-dept').value);
+            formData.append('user_password', document.getElementById('edit-profile-password').value);
+
+            try {
+                const response = await fetch('../common-pages/scripts/update_profile.php', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showSuccess(result.message || 'Profile updated successfully!');
+                    closeEditProfileModal();
+                    fetchUserProfile(); 
+                } else {
+                    showStatus(result.message || 'Failed to update profile.', true);
+                }
+            } catch (err) {
+                showStatus("Mock update successful! (Backend missing)");
+                currentActiveUserData.user_name = document.getElementById('edit-profile-name').value;
+                currentActiveUserData.user_mail = document.getElementById('edit-profile-email').value;
+                currentActiveUserData.dept_id = document.getElementById('edit-profile-dept').value;
+                updateUIWithUserData(currentActiveUserData);
+                closeEditProfileModal();
+            }
+            btn.disabled = false; btn.innerText = "Update Account"; 
+        }
+
+        // --- FETCH PURCHASED ITEMS LOGIC ---
+        async function fetchPurchasedItemsData() {
+            try {
+                let fd = new FormData();
+                fd.append('user_id', activeUserId);
+                let res = await fetch('../common-pages/scripts/fetch_purchased_items.php', { method: 'POST', body: fd });
+                if(res && res.ok) {
+                    const text = await res.text();
+                    if (text && text.trim() !== '') {
+                        let j = JSON.parse(text);
+                        if (j.status === 'success') {
+                            allPurchasedItems = j.data || [];
+                            renderPurchasedTables();
+                            return; // Exit successfully
+                        }
+                    }
+                }
+                throw new Error("Invalid response from server");
+            } catch (e) {
+                console.error("Error fetching purchased items:", e);
+                // Mock data for preview
+                allPurchasedItems = [
+                    { serial_number: 'SN-9012', item_name: 'Patient Monitor', item_model: 'PM-400', item_manufacturer: 'GE Healthcare', date_purchased: '2026-04-10', date_forwarded: 'nan', date_added_to_inventory: 'nan', user_id: 'EMP-102', forwarded_by_user_id: 'nan' },
+                    { serial_number: 'SN-9013', item_name: 'ECG Machine', item_model: 'Cardio-X', item_manufacturer: 'Philips', date_purchased: '2026-04-11', date_forwarded: '2026-04-12', date_added_to_inventory: '2026-04-13', user_id: 'EMP-102', forwarded_by_user_id: 'EMP-105' },
+                    { serial_number: 'SN-9014', item_name: 'Defibrillator', item_model: 'D-500', item_manufacturer: 'Zoll', date_purchased: '2026-04-12', date_forwarded: 'nan', date_added_to_inventory: 'nan', user_id: 'EMP-102', forwarded_by_user_id: 'nan' }
+                ];
+                renderPurchasedTables();
+            }
+        }
+
+        function renderPurchasedTables() {
+            filterPurchased();
+            filterForwardPurchased();
+            filterForwardedHistory();
+        }
+
+        function filterPurchased() {
+            const search = document.getElementById('filter-pur-search').value.toLowerCase();
+            const user = document.getElementById('filter-pur-user').value.toLowerCase();
+            const pDate = document.getElementById('filter-pur-date').value;
+            const fDate = document.getElementById('filter-pur-fwd-date') ? document.getElementById('filter-pur-fwd-date').value : '';
+            const invDate = document.getElementById('filter-pur-inv-date') ? document.getElementById('filter-pur-inv-date').value : '';
+            
+            const isFwd = document.getElementById('filter-pur-is-fwd') ? document.getElementById('filter-pur-is-fwd').value : 'all';
+            const isInv = document.getElementById('filter-pur-is-inv') ? document.getElementById('filter-pur-is-inv').value : 'all';
+
+            const filtered = allPurchasedItems.filter(i => {
+                const matchSearch = i.item_name.toLowerCase().includes(search) || 
+                                    i.serial_number.toLowerCase().includes(search) || 
+                                    i.item_model.toLowerCase().includes(search) || 
+                                    i.item_manufacturer.toLowerCase().includes(search);
+                const matchUser = user === '' || i.user_id.toLowerCase().includes(user);
+                
+                const itemPDate = i.date_purchased ? i.date_purchased.split(' ')[0] : '';
+                const matchDate = pDate === '' || (itemPDate !== '' && itemPDate <= pDate);
+                
+                const hasFwdDate = (i.date_forwarded && i.date_forwarded !== 'nan');
+                const itemFDate = hasFwdDate ? i.date_forwarded.split(' ')[0] : null;
+                const matchFwdDate = fDate === '' || (itemFDate !== null && itemFDate <= fDate);
+
+                const hasInvDate = (i.date_added_to_inventory && i.date_added_to_inventory !== 'nan');
+                const itemInvDate = hasInvDate ? i.date_added_to_inventory.split(' ')[0] : null;
+                const matchInvDate = invDate === '' || (itemInvDate !== null && itemInvDate <= invDate);
+
+                const matchIsFwd = isFwd === 'all' || (isFwd === 'yes' && hasFwdDate) || (isFwd === 'no' && !hasFwdDate);
+                const matchIsInv = isInv === 'all' || (isInv === 'yes' && hasInvDate) || (isInv === 'no' && !hasInvDate);
+
+                return matchSearch && matchUser && matchDate && matchFwdDate && matchInvDate && matchIsFwd && matchIsInv;
+            });
+
+            currentFilteredPurchasedItems = filtered; // Store for CSV Download
+
+            const tbody = document.getElementById('purchased-table-body');
+            tbody.innerHTML = '';
+            document.getElementById('purchased-empty').classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(i => {
+                const fwdBadge = (i.date_forwarded !== 'nan' && i.date_forwarded !== null && i.date_forwarded !== '') ? `<span class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[9px] font-bold rounded uppercase border border-emerald-200 dark:border-emerald-800">Forwarded</span>` : `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[9px] font-bold rounded uppercase border border-slate-200 dark:border-slate-700">Pending</span>`;
+                const invBadge = (i.date_added_to_inventory !== 'nan' && i.date_added_to_inventory !== null && i.date_added_to_inventory !== '') ? `<span class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[9px] font-bold rounded uppercase border border-blue-200 dark:border-blue-800">In Inventory</span>` : `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[9px] font-bold rounded uppercase border border-slate-200 dark:border-slate-700">Pending</span>`;
+                
+                // Show both who added it and who forwarded it (if applicable)
+                let userHtml = `<span class="font-medium text-slate-600 dark:text-slate-300">Added: ${i.user_id}</span>`;
+                if (i.forwarded_by_user_id && i.forwarded_by_user_id !== 'nan' && i.forwarded_by_user_id !== null) {
+                    userHtml += `<br><span class="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 inline-block">Fwd: ${i.forwarded_by_user_id}</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="bg-white dark:bg-darkCard hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 even:bg-slate-50/50 dark:even:bg-slate-800/30 transition-colors text-sm border-b border-gray-100 dark:border-darkBorder">
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 font-mono text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400">${i.serial_number}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700">
+                            <p class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">${i.item_name}</p>
+                            <p class="text-[9px] md:text-[10px] text-slate-500 font-mono mt-0.5">${i.item_model}</p>
+                        </td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-400">${i.item_manufacturer}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs text-slate-500">${i.date_purchased ? i.date_purchased.split(' ')[0] : 'N/A'}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs">${fwdBadge}<br><span class="text-[9px] text-slate-400 mt-1 block">${i.date_forwarded !== 'nan' && i.date_forwarded !== null ? i.date_forwarded.split(' ')[0] : ''}</span></td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs">${invBadge}<br><span class="text-[9px] text-slate-400 mt-1 block">${i.date_added_to_inventory !== 'nan' && i.date_added_to_inventory !== null ? i.date_added_to_inventory.split(' ')[0] : ''}</span></td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs leading-tight">${userHtml}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                <button onclick="openEditPurchaseModal('${i.serial_number}')" class="p-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors" title="Edit Purchase">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                </button>
+                                <button onclick="confirmDeletePurchase('${i.serial_number}')" class="p-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors" title="Delete Purchase">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function filterForwardPurchased() {
+            const search = document.getElementById('filter-fwd-pur-search').value.toLowerCase();
+            const pDate = document.getElementById('filter-fwd-pur-date') ? document.getElementById('filter-fwd-pur-date').value : '';
+
+            const filtered = allPurchasedItems.filter(i => {
+                const hasFwdDate = (i.date_forwarded && i.date_forwarded !== 'nan');
+                if(hasFwdDate) return false; // ONLY PENDING FORWARD - Core logic of this tab
+                
+                const matchSearch = i.item_name.toLowerCase().includes(search) || 
+                                    i.serial_number.toLowerCase().includes(search) || 
+                                    i.item_model.toLowerCase().includes(search) || 
+                                    i.item_manufacturer.toLowerCase().includes(search);
+
+                const itemPDate = i.date_purchased ? i.date_purchased.split(' ')[0] : '';
+                const matchDate = pDate === '' || (itemPDate !== '' && itemPDate <= pDate);
+
+                return matchSearch && matchDate;
+            });
+
+            const tbody = document.getElementById('forward-purchases-table-body');
+            tbody.innerHTML = '';
+            document.getElementById('forward-purchases-empty').classList.toggle('hidden', filtered.length > 0);
+
+            filtered.forEach(i => {
+                const isChecked = selectedForwardItems.has(i.serial_number) ? 'checked' : '';
+                
+                let userHtml = `<span class="font-medium text-slate-600 dark:text-slate-300">Added: ${i.user_id}</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="bg-white dark:bg-darkCard hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 even:bg-slate-50/50 dark:even:bg-slate-800/30 transition-colors text-sm border-b border-gray-100 dark:border-darkBorder">
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-center">
+                            <input type="checkbox" value="${i.serial_number}" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" ${isChecked} onchange="toggleForwardSelection(this)">
+                        </td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 font-mono text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400">${i.serial_number}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700">
+                            <p class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">${i.item_name}</p>
+                            <p class="text-[9px] md:text-[10px] text-slate-500 font-mono mt-0.5">${i.item_model}</p>
+                        </td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs font-semibold text-slate-600 dark:text-slate-400">${i.item_manufacturer}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs text-slate-500">${i.date_purchased ? i.date_purchased.split(' ')[0] : 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            updateForwardBulkUI();
+        }
+
+        function toggleForwardSelection(cb) {
+            if (cb.checked) {
+                selectedForwardItems.add(cb.value);
+            } else {
+                selectedForwardItems.delete(cb.value);
+                document.getElementById('forward-master-cb').checked = false;
+            }
+            updateForwardBulkUI();
+        }
+
+        function toggleAllForward(master) {
+            const checkboxes = document.querySelectorAll('#forward-purchases-table-body input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = master.checked;
+                if(master.checked) selectedForwardItems.add(cb.value);
+                else selectedForwardItems.delete(cb.value);
+            });
+            updateForwardBulkUI();
+        }
+
+        function updateForwardBulkUI() {
+            const bar = document.getElementById('forward-bulk-bar');
+            const countText = document.getElementById('forward-bulk-count');
+            const count = selectedForwardItems.size;
+
+            if (count > 0) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+                countText.innerText = `${count} item${count > 1 ? 's' : ''} selected`;
+            } else {
+                bar.classList.add('hidden');
+                bar.classList.remove('flex');
+            }
+        }
+
+        async function executeForwardBulk() {
+            if(selectedForwardItems.size === 0) return;
+            
+            const btn = document.getElementById('forward-bulk-btn');
+            const origText = btn.innerText;
+            btn.innerText = "Forwarding...";
+            btn.disabled = true;
+
+            const itemsToForward = Array.from(selectedForwardItems).map(sn => {
+                return allPurchasedItems.find(i => i.serial_number === sn);
+            });
+
+            const fd = new FormData();
+            fd.append('user_id', activeUserId);
+            fd.append('items', JSON.stringify(itemsToForward));
+
+            try {
+                // Point directly to the dedicated forward script
+                const res = await fetch('../common-pages/scripts/forward_purchased_items.php', { method: 'POST', body: fd });
+                
+                if (!res.ok) throw new Error("HTTP Error " + res.status);
+                
+                // Safely read text to prevent the "Unexpected end of JSON input" crash
+                const responseText = await res.text();
+                if (!responseText || responseText.trim() === '') {
+                    throw new Error("Server returned an empty response. Check PHP error logs.");
+                }
+                
+                let json;
+                try {
+                    json = JSON.parse(responseText);
+                } catch (parseErr) {
+                    console.error("Raw Server Response:", responseText);
+                    throw new Error("Invalid JSON received from server.");
+                }
+                
+                if(json.status === 'success') {
+                    showSuccess(json.message);
+                    selectedForwardItems.clear();
+                    document.getElementById('forward-master-cb').checked = false;
+                    await fetchPurchasedItemsData(); 
+                } else {
+                    showError(json.message || "Failed to forward items.");
+                }
+            } catch(e) {
+                console.error("Forwarding Error:", e);
+                showError("Error: " + e.message);
+            }
+            
+            btn.innerText = origText;
+            btn.disabled = false;
+        }
+
+        // --- FORWARDED HISTORY & ROLLBACK ---
+        let forwardToRollback = null;
+
+        function confirmRollbackForward(sn) {
+            forwardToRollback = sn;
+            document.getElementById('rollback-forward-modal').classList.remove('hidden');
+            document.getElementById('rollback-forward-modal').classList.add('flex');
+        }
+
+        function closeRollbackForwardModal() {
+            forwardToRollback = null;
+            document.getElementById('rollback-forward-modal').classList.add('hidden');
+            document.getElementById('rollback-forward-modal').classList.remove('flex');
+        }
+
+        function filterForwardedHistory() {
+            const search = document.getElementById('filter-his-search').value.toLowerCase();
+            const fDate = document.getElementById('filter-his-fwd-date') ? document.getElementById('filter-his-fwd-date').value : '';
+            const invDate = document.getElementById('filter-his-inv-date') ? document.getElementById('filter-his-inv-date').value : '';
+            
+            const filtered = allPurchasedItems.filter(i => {
+                const hasFwdDate = (i.date_forwarded && i.date_forwarded !== 'nan' && i.date_forwarded !== null);
+                if(!hasFwdDate) return false; // ONLY SHOW FORWARDED ITEMS
+                
+                const matchSearch = i.item_name.toLowerCase().includes(search) || 
+                                    i.serial_number.toLowerCase().includes(search) || 
+                                    i.item_model.toLowerCase().includes(search) || 
+                                    i.item_manufacturer.toLowerCase().includes(search);
+                
+                const itemFDate = hasFwdDate ? i.date_forwarded.split(' ')[0] : null;
+                const matchFwdDate = fDate === '' || (itemFDate !== null && itemFDate <= fDate);
+
+                const hasInvDate = (i.date_added_to_inventory && i.date_added_to_inventory !== 'nan');
+                const itemInvDate = hasInvDate ? i.date_added_to_inventory.split(' ')[0] : null;
+                const matchInvDate = invDate === '' || (itemInvDate !== null && itemInvDate <= invDate);
+
+                return matchSearch && matchFwdDate && matchInvDate;
+            });
+            
+            const tbody = document.getElementById('forwarded-history-body');
+            tbody.innerHTML = '';
+            document.getElementById('forwarded-history-empty').classList.toggle('hidden', filtered.length > 0);
+            
+            filtered.forEach(i => {
+                const fwdTime = new Date(i.date_forwarded.replace(/-/g, "/")).getTime();
+                const diffHours = (Date.now() - fwdTime) / (1000 * 60 * 60);
+                const canRollback = diffHours <= 24;
+                
+                const rollbackBtn = canRollback 
+                    ? `<button onclick="confirmRollbackForward('${i.serial_number}')" class="group flex items-center justify-end space-x-1.5 ml-auto px-3 py-1.5 text-slate-500 hover:text-amber-600 dark:text-slate-400 dark:hover:text-amber-400 transition-colors rounded-lg border border-gray-200 dark:border-darkBorder hover:border-amber-200 dark:hover:border-amber-800 bg-white dark:bg-darkCard hover:bg-amber-50 dark:hover:bg-amber-900/20" title="Rollback to Pending">
+                        <svg class="w-3.5 h-3.5 transition-transform group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Rollback</span>
+                       </button>` 
+                    : `<div class="flex items-center justify-end space-x-1.5 px-2 py-1.5 text-slate-400 dark:text-slate-500" title="Rollback locked (Past 24h limit)">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        <span class="text-[9px] font-bold uppercase tracking-widest">Locked</span>
+                       </div>`;
+                    
+                let userHtml = `<span class="font-medium text-slate-600 dark:text-slate-300">Added: ${i.user_id}</span>`;
+                if (i.forwarded_by_user_id && i.forwarded_by_user_id !== 'nan' && i.forwarded_by_user_id !== null) {
+                    userHtml += `<br><span class="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 inline-block">Fwd: ${i.forwarded_by_user_id}</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="bg-white dark:bg-darkCard hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-sm border-b border-gray-100 dark:border-darkBorder">
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 font-mono text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400">${i.serial_number}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700">
+                            <p class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">${i.item_name}</p>
+                            <p class="text-[9px] md:text-[10px] text-slate-500 font-mono mt-0.5">${i.item_model}</p>
+                        </td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs text-slate-500">${i.date_purchased ? i.date_purchased.split(' ')[0] : 'N/A'}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs font-bold text-slate-700 dark:text-slate-300">${i.date_forwarded ? i.date_forwarded.split(' ')[0] : ''}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 text-[10px] md:text-xs leading-tight">${userHtml}</td>
+                        <td class="px-4 md:px-6 py-3 text-right">${rollbackBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        async function executeRollbackForward() {
+            if(!forwardToRollback) return;
+            const sn = forwardToRollback;
+            const btn = document.getElementById('btn-confirm-rollback');
+            const origText = btn.innerText;
+            btn.disabled = true; btn.innerText = "Processing...";
+            
+            const fd = new FormData();
+            fd.append('action', 'rollback');
+            fd.append('user_id', activeUserId);
+            fd.append('serial_number', sn);
+            
+            try {
+                const res = await fetch('../common-pages/scripts/manage_purchased_items.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    showSuccess(json.message);
+                    closeRollbackForwardModal();
+                    await fetchPurchasedItemsData();
+                } else {
+                    showError(json.message);
+                }
+            } catch(e) {
+                showError("Network Error. Mock applied.");
+                
+                // MOCK BEHAVIOR FOR CANVAS
+                showSuccess("Mock Rollback Successful!");
+                const item = allPurchasedItems.find(i => i.serial_number === sn);
+                if (item) {
+                    item.date_forwarded = 'nan';
+                    item.date_added_to_inventory = 'nan';
+                    item.forwarded_by_user_id = 'nan';
+                }
+                closeRollbackForwardModal();
+                renderPurchasedTables();
+            }
+            btn.disabled = false; btn.innerText = origText;
+        }
+
+        // --- EDIT & DELETE PURCHASED ITEMS ---
+        function openEditPurchaseModal(sn) {
+            const item = allPurchasedItems.find(i => i.serial_number === sn);
+            if(!item) return;
+            
+            document.getElementById('edit-pur-original-sn').value = item.serial_number;
+            document.getElementById('edit-pur-sn').value = item.serial_number;
+            document.getElementById('edit-pur-name').value = item.item_name;
+            document.getElementById('edit-pur-model').value = item.item_model;
+            document.getElementById('edit-pur-mfr').value = item.item_manufacturer;
+            document.getElementById('edit-pur-date').value = item.date_purchased ? item.date_purchased.split(' ')[0] : '';
+            
+            document.getElementById('edit-purchase-modal').classList.remove('hidden');
+            document.getElementById('edit-purchase-modal').classList.add('flex');
+        }
+        
+        function closeEditPurchaseModal() {
+            document.getElementById('edit-purchase-modal').classList.add('hidden');
+            document.getElementById('edit-purchase-modal').classList.remove('flex');
+        }
+        
+        async function submitEditPurchase(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-edit-pur');
+            btn.disabled = true; btn.innerText = "Saving...";
+            
+            const fd = new FormData();
+            fd.append('action', 'edit');
+            fd.append('user_id', activeUserId);
+            fd.append('original_serial_number', document.getElementById('edit-pur-original-sn').value);
+            fd.append('serial_number', document.getElementById('edit-pur-sn').value);
+            fd.append('item_name', document.getElementById('edit-pur-name').value);
+            fd.append('item_model', document.getElementById('edit-pur-model').value);
+            fd.append('item_manufacturer', document.getElementById('edit-pur-mfr').value);
+            fd.append('date_purchased', document.getElementById('edit-pur-date').value);
+            
+            try {
+                const res = await fetch('../common-pages/scripts/manage_purchased_items.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    showSuccess(json.message);
+                    closeEditPurchaseModal();
+                    await fetchPurchasedItemsData();
+                } else {
+                    showError(json.message);
+                }
+            } catch(e) {
+                showError("Network Error. Mock save applied.");
+                
+                // MOCK UPDATE
+                const origSn = document.getElementById('edit-pur-original-sn').value;
+                const newSn = document.getElementById('edit-pur-sn').value;
+                const item = allPurchasedItems.find(i => i.serial_number === origSn);
+                if(item) {
+                    item.serial_number = newSn;
+                    item.item_name = document.getElementById('edit-pur-name').value;
+                    item.item_model = document.getElementById('edit-pur-model').value;
+                    item.item_manufacturer = document.getElementById('edit-pur-mfr').value;
+                    item.date_purchased = document.getElementById('edit-pur-date').value;
+                }
+                closeEditPurchaseModal();
+                renderPurchasedTables();
+            }
+            btn.disabled = false; btn.innerText = "Save Changes";
+        }
+        
+        let purchaseToDelete = null;
+        function confirmDeletePurchase(sn) {
+            purchaseToDelete = sn;
+            document.getElementById('delete-purchase-modal').classList.remove('hidden');
+            document.getElementById('delete-purchase-modal').classList.add('flex');
+        }
+        
+        function closeDeletePurchaseModal() {
+            purchaseToDelete = null;
+            document.getElementById('delete-purchase-modal').classList.add('hidden');
+            document.getElementById('delete-purchase-modal').classList.remove('flex');
+        }
+        
+        async function executeDeletePurchase() {
+            if(!purchaseToDelete) return;
+            const btn = document.getElementById('btn-confirm-delete-pur');
+            btn.disabled = true; btn.innerText = "Deleting...";
+            
+            const fd = new FormData();
+            fd.append('action', 'delete');
+            fd.append('user_id', activeUserId);
+            fd.append('serial_number', purchaseToDelete);
+            
+            try {
+                const res = await fetch('../common-pages/scripts/manage_purchased_items.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    showSuccess(json.message);
+                    closeDeletePurchaseModal();
+                    await fetchPurchasedItemsData();
+                } else {
+                    showError(json.message);
+                }
+            } catch(e) {
+                showError("Network Error. Mock deletion applied.");
+                // MOCK DELETION
+                allPurchasedItems = allPurchasedItems.filter(i => i.serial_number !== purchaseToDelete);
+                closeDeletePurchaseModal();
+                renderPurchasedTables();
+            }
+            btn.disabled = false; btn.innerText = "Yes, Delete";
+        }
+
+        // --- CSV EXPORT LOGIC ---
+        function exportToCSV(filename, rows) {
+            if (!rows || !rows.length) {
+                showError("No data to download based on filters.");
+                return;
+            }
+            const separator = ',';
+            const keys = Object.keys(rows[0]);
+            const csvContent = keys.join(separator) + '\n' +
+                rows.map(row => {
+                    return keys.map(k => {
+                        let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+                        cell = cell.toString().replace(/"/g, '""');
+                        if (cell.search(/("|,|\n)/g) >= 0) cell = `"${cell}"`;
+                        return cell;
+                    }).join(separator);
+                }).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        function downloadPurchasedCSV() {
+            if (!currentFilteredPurchasedItems || currentFilteredPurchasedItems.length === 0) {
+                showError("No matching records found to download.");
+                return;
+            }
+
+            // Format data beautifully for CSV
+            const exportData = currentFilteredPurchasedItems.map(i => ({
+                "Serial Number": i.serial_number,
+                "Item Name": i.item_name,
+                "Model Number": i.item_model,
+                "Manufacturer": i.item_manufacturer,
+                "Purchase Date": i.date_purchased ? i.date_purchased.split(' ')[0] : 'N/A',
+                "Forwarded Date": (i.date_forwarded && i.date_forwarded !== 'nan') ? i.date_forwarded.split(' ')[0] : 'Pending',
+                "Added to Inventory Date": (i.date_added_to_inventory && i.date_added_to_inventory !== 'nan') ? i.date_added_to_inventory.split(' ')[0] : 'Pending',
+                "Original Purchaser (User ID)": i.user_id,
+                "Forwarded By (User ID)": (i.forwarded_by_user_id && i.forwarded_by_user_id !== 'nan' && i.forwarded_by_user_id !== null) ? i.forwarded_by_user_id : 'N/A'
+            }));
+
+            exportToCSV(`Purchased_Items_Export_${new Date().toISOString().split('T')[0]}.csv`, exportData);
+            showSuccess("CSV File Downloaded Successfully.");
+        }
+
+        function downloadHistoryCSV() {
+            if (!currentExportHistory || currentExportHistory.length === 0) {
+                showError("No matching records found to download.");
+                return;
+            }
+
+            const exportData = currentExportHistory.map(r => {
+                const isApproved = r.approved_date && r.approved_date !== 'nan';
+                const isDisapproved = r.disapprove_date && r.disapprove_date !== 'nan';
+                const finalStatus = isApproved ? 'Approved' : (isDisapproved ? 'Disapproved' : 'Unknown');
+                const signedDate = isApproved ? r.approved_date : (isDisapproved ? r.disapprove_date : 'N/A');
+
+                return {
+                    "Ticket ID": r.report_id,
+                    "Asset Name": r.asset_name,
+                    "Department": r.department,
+                    "Floor/Building": r.floor,
+                    "Reported By (User ID)": r.user_id,
+                    "Urgency Level": r.urgency_level.toUpperCase(),
+                    "Parts Required": r.parts_required === 'y' ? 'Yes' : 'No',
+                    "Issue Description": r.description,
+                    "Date Reported": r.report_date,
+                    "Date Forwarded": (r.forwarded_date && r.forwarded_date !== 'nan') ? r.forwarded_date : 'N/A',
+                    "Final Status": finalStatus,
+                    "Date Signed": signedDate
+                };
+            });
+
+            exportToCSV(`Signed_History_Export_${new Date().toISOString().split('T')[0]}.csv`, exportData);
+            showSuccess("History CSV Downloaded Successfully.");
+        }
+
+        // --- DASHBOARD OVERVIEW DATA FETCHING ---
+        async function fetchOverviewData() {
+            const loader = document.getElementById('loader');
+            if(loader) loader.classList.remove('hidden');
+            
+            try {
+                // Fetch Pending (Forwarded)
+                let fd1 = new FormData(); fd1.append('action', 'fetch_forwarded');
+                let res1 = await fetch('../common-pages/scripts/process_purchase.php', { method: 'POST', body: fd1 });
+                let j1 = await res1.json();
+                if(j1.status === 'success') {
+                    forwardedData = j1.data || [];
+                    const penEl = document.getElementById('count-pending');
+                    if(penEl) penEl.innerText = forwardedData.length;
+                    renderTable('forwarded-table-body', 'empty-state', 'forwarded', forwardedData);
+                }
+
+                // Fetch History (Approved / Disapproved)
+                let fd2 = new FormData(); fd2.append('action', 'fetch_history');
+                let res2 = await fetch('../common-pages/scripts/process_purchase.php', { method: 'POST', body: fd2 });
+                let j2 = await res2.json();
+                if(j2.status === 'success') {
+                    historyData = j2.data || [];
+                    const approvedCount = historyData.filter(r => r.approved_date !== 'nan').length;
+                    const disapprovedCount = historyData.filter(r => r.disapprove_date !== 'nan').length;
+                    
+                    const appEl = document.getElementById('count-approved');
+                    const disEl = document.getElementById('count-disapproved');
+                    if(appEl) appEl.innerText = approvedCount;
+                    if(disEl) disEl.innerText = disapprovedCount;
+                    
+                    filterSignedHistory(); // Automatically filters and renders the history tab
+                }
+            } catch(e) { 
+                showStatus("Error syncing master data.", true); 
+            }
+            if(loader) loader.classList.add('hidden');
+        }
+
+        async function fetchReports(type) {
+            await fetchOverviewData();
+        }
+
+        function filterSignedHistory() {
+            const search = document.getElementById('filter-signed-search').value.toLowerCase();
+            const status = document.getElementById('filter-signed-status').value;
+            const sDate = document.getElementById('filter-signed-date').value;
+
+            const filtered = historyData.filter(r => {
+                const matchSearch = r.asset_name.toLowerCase().includes(search) || 
+                                    r.report_id.toString().includes(search) || 
+                                    r.department.toLowerCase().includes(search) || 
+                                    r.user_id.toLowerCase().includes(search);
+                
+                const isApproved = r.approved_date && r.approved_date !== 'nan';
+                const isDisapproved = r.disapprove_date && r.disapprove_date !== 'nan';
+                
+                let matchStatus = true;
+                if (status === 'approved') matchStatus = isApproved;
+                if (status === 'disapproved') matchStatus = isDisapproved;
+
+                const signedDateStr = isApproved ? r.approved_date : (isDisapproved ? r.disapprove_date : '');
+                const signedDateOnly = signedDateStr ? signedDateStr.split(' ')[0] : null;
+                const matchDate = sDate === '' || (signedDateOnly !== null && signedDateOnly <= sDate);
+
+                return matchSearch && matchStatus && matchDate;
+            });
+
+            currentExportHistory = filtered;
+            renderTable('history-table-body', 'history-empty', 'history', filtered);
+        }
+
+        function renderTable(tbodyId, emptyId, type, dataArray) {
+            const tbody = document.getElementById(tbodyId);
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            document.getElementById(emptyId).classList.toggle('hidden', dataArray.length > 0);
+            
+            dataArray.forEach(r => {
+                const isApproved = r.approved_date && r.approved_date !== 'nan';
+                const isDisapproved = r.disapprove_date && r.disapprove_date !== 'nan';
+                
+                const dateKey = isApproved ? r.approved_date : (isDisapproved ? r.disapprove_date : r.forwarded_date);
+                const formattedDate = (dateKey && dateKey !== 'nan') ? new Date(dateKey.replace(/-/g, "/")).toLocaleDateString('en-GB', {day:'2-digit', month:'short'}) : 'N/A';
+                
+                let allowRollback = false;
+                if (type === 'history') {
+                    if (dateKey && dateKey !== 'nan') {
+                        const diffHrs = (new Date() - new Date(dateKey.replace(/-/g, "/"))) / (1000 * 60 * 60);
+                        allowRollback = (diffHrs <= 24);
+                    }
+                }
+
+                const badgeHtml = type === 'history' ? (isApproved ? '<span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-bold rounded shadow-sm">APP</span>' : '<span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-[8px] font-bold rounded shadow-sm">DIS</span>') : '';
+
+                tbody.innerHTML += `
+                    <tr class="bg-white dark:bg-darkCard hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 even:bg-slate-50/50 dark:even:bg-slate-800/30 transition-colors text-sm border-b border-gray-100 dark:border-darkBorder">
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 font-mono text-[10px] md:text-xs font-bold text-emerald-600 uppercase">#${r.report_id}</td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700">
+                            <div class="flex items-center space-x-2">
+                                <p class="text-[11px] md:text-sm font-bold dark:text-white uppercase tracking-tight">${r.asset_name}</p>
+                                ${badgeHtml}
+                            </div>
+                            <p class="text-[9px] text-slate-500 uppercase mt-0.5">${r.department} • ${r.floor}</p>
+                        </td>
+                        <td class="px-4 md:px-6 py-3 border-r border-gray-200 dark:border-slate-700 font-medium text-slate-400 text-[10px] md:text-xs">${formattedDate}</td>
+                        <td class="px-4 md:px-6 py-3 text-right">
+                            <div class="flex items-center justify-end space-x-1.5 sm:space-x-3">
+                                <button onclick="viewReport('${r.report_id}', '${type}')" class="p-2 sm:p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg sm:rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-colors shadow-sm" title="View Full Details">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                </button>
+                                ${type === 'forwarded' ? `
+                                    <button onclick="signReport('${r.report_id}', 'approve')" class="p-2 sm:p-2.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg sm:rounded-xl hover:bg-emerald-600 hover:text-white transition-all" title="Approve">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                    </button>
+                                    <button onclick="signReport('${r.report_id}', 'disapprove')" class="p-2 sm:p-2.5 bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded-lg sm:rounded-xl hover:bg-red-600 hover:text-white transition-all" title="Disapprove">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                ` : allowRollback ? `
+                                    <button onclick="rollbackReport('${r.report_id}')" class="px-3 sm:px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] uppercase hover:bg-red-600 hover:text-white transition-all shadow-sm">Rollback</button>
+                                ` : '<span class="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase px-2 sm:px-4">Archived</span>'}
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function viewReport(id, type) {
+            const dataArray = type === 'forwarded' ? forwardedData : historyData;
+            const r = dataArray.find(x => x.report_id == id);
+            if(!r) return;
+            
+            document.getElementById('modal-report-id').innerText = `#${id}`;
+            document.getElementById('modal-asset-name').innerText = r.asset_name;
+            document.getElementById('modal-dept').innerText = r.department;
+            document.getElementById('modal-floor').innerText = r.floor;
+            document.getElementById('modal-user-id').innerText = r.user_id;
+            document.getElementById('modal-desc').innerText = r.description || "No failure details provided.";
+            document.getElementById('val-parts').innerText = r.parts_required === 'y' ? 'COMPONENTS REQUIRED' : 'REPAIR SERVICE';
+            document.getElementById('modal-priority').innerText = r.urgency_level;
+
+            document.getElementById('t-reported').innerText = r.report_date;
+            document.getElementById('t-verified').innerText = (r.verified_date && r.verified_date !== 'nan') ? r.verified_date : 'N/A';
+            document.getElementById('t-forwarded').innerText = (r.forwarded_date && r.forwarded_date !== 'nan') ? r.forwarded_date : 'N/A';
+            document.getElementById('t-resolved').innerText = (r.resolved_date && r.resolved_date !== 'nan') ? r.resolved_date : 'N/A';
+
+            const isApproved = r.approved_date && r.approved_date !== 'nan';
+            const isDisapproved = r.disapprove_date && r.disapprove_date !== 'nan';
+            
+            const sigDate = isApproved ? r.approved_date : (isDisapproved ? r.disapprove_date : 'UNSIGNED');
+            const sigLabel = document.getElementById('label-signed');
+            const sigText = document.getElementById('t-signed');
+            
+            sigText.innerText = sigDate;
+            if(isApproved) {
+                sigLabel.innerText = "Approved"; sigLabel.className = "text-[10px] text-emerald-500 uppercase font-bold sm:block sm:mb-1";
+                sigText.className = "text-[10px] sm:text-xs font-bold text-emerald-600";
+            } else if(isDisapproved) {
+                sigLabel.innerText = "Disapproved"; sigLabel.className = "text-[10px] text-red-500 uppercase font-bold sm:block sm:mb-1";
+                sigText.className = "text-[10px] sm:text-xs font-bold text-red-600";
+            } else {
+                sigLabel.innerText = "Signed"; sigLabel.className = "text-[10px] text-slate-500 uppercase font-bold sm:block sm:mb-1";
+                sigText.className = "text-[10px] sm:text-xs font-bold text-slate-400";
+            }
+
+            const grid = document.getElementById('modal-photos-grid');
+            const empty = document.getElementById('modal-no-photos');
+            grid.innerHTML = '';
+            let photos = []; try { photos = JSON.parse(r.photos || '[]'); } catch(e) {}
+            if(photos.length > 0) {
+                empty.classList.add('hidden');
+                photos.forEach(p => {
+                    const path = `../common-pages/asset_report/uploads/${p}`;
+                    grid.innerHTML += `<img src="${path}" class="aspect-square object-cover rounded-2xl border dark:border-darkBorder cursor-pointer hover:opacity-80 transition-opacity" onclick="openImageViewer('${path}', '${p}')">`;
+                });
+            } else { empty.classList.remove('hidden'); }
+            
+            const appBtn = document.getElementById('modal-approve-btn');
+            const disBtn = document.getElementById('modal-disapprove-btn');
+            const rollBtn = document.getElementById('modal-rollback-btn');
+            
+            appBtn.classList.toggle('hidden', type !== 'forwarded');
+            disBtn.classList.toggle('hidden', type !== 'forwarded');
+            
+            let canRoll = false;
+            if(type === 'history') {
+                const dateKey = isApproved ? r.approved_date : r.disapprove_date;
+                if (dateKey && dateKey !== 'nan') {
+                    const hrs = (new Date() - new Date(dateKey.replace(/-/g, "/"))) / (1000 * 60 * 60);
+                    canRoll = hrs <= 24;
+                }
+            }
+            rollBtn.classList.toggle('hidden', !canRoll);
+            
+            appBtn.onclick = () => signReport(id, 'approve');
+            disBtn.onclick = () => signReport(id, 'disapprove');
+            rollBtn.onclick = () => rollbackReport(id);
+
+            document.getElementById('view-modal').classList.remove('hidden');
+            document.getElementById('view-modal').classList.add('flex');
+        }
+
+        async function signReport(id, mode) {
+            const endpoint = mode === 'approve' ? 'approve_report' : 'disapprove_report';
+            const fd = new FormData(); fd.append('action', endpoint); fd.append('report_id', id);
+            try {
+                const res = await fetch('../common-pages/scripts/process_purchase.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') { 
+                    showSuccess(json.message); 
+                    closeModal(); 
+                    fetchOverviewData(); 
+                } else { 
+                    showStatus(json.message, true); 
+                }
+            } catch(e) { showStatus("Server Error", true); }
+        }
+
+        async function rollbackReport(id) {
+            const fd = new FormData(); fd.append('action', 'rollback_approval'); fd.append('report_id', id);
+            try {
+                const res = await fetch('../common-pages/scripts/process_purchase.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') { 
+                    showSuccess(json.message); 
+                    closeModal(); 
+                    fetchOverviewData(); 
+                } else { 
+                    showStatus(json.message, true); 
+                }
+            } catch(e) { showStatus("Rollback request failed", true); }
+        }
+
+        function openImageViewer(url, filename) {
+            const img = document.getElementById('viewer-image');
+            img.src = url;
+            document.getElementById('viewer-download-btn').href = url;
+            document.getElementById('image-viewer-modal').classList.remove('hidden');
+            document.getElementById('image-viewer-modal').classList.add('flex');
+        }
+        function closeImageViewer() { document.getElementById('image-viewer-modal').classList.add('hidden'); }
+        let currentZoom = 1;
+        function zoomImage(f) { currentZoom = Math.min(Math.max(0.5, currentZoom+f), 4); document.getElementById('viewer-image').style.transform = `scale(${currentZoom})`; }
+        function resetZoom() { currentZoom = 1; document.getElementById('viewer-image').style.transform = `scale(1)`; }
+        function closeModal() { document.getElementById('view-modal').classList.add('hidden'); }
+
+        // --- DASHBOARD UI LOGIC ---
+        let isSidebarOpen = true; 
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            isSidebarOpen = !isSidebarOpen;
+            
+            if (isSidebarOpen) {
+                sidebar.classList.add('sidebar-open');
+                sidebar.classList.remove('sidebar-collapsed');
+                if (window.innerWidth < 768) backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.remove('sidebar-open');
+                sidebar.classList.add('sidebar-collapsed');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        function switchTab(tabId) {
+            if (window.innerWidth < 768 && isSidebarOpen) {
+                toggleSidebar();
+            }
+
+            document.querySelectorAll('.tab-pane').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('flex'); 
+            });
+            
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) {
+                target.classList.remove('hidden');
+                if(tabId === 'profile' || tabId === 'forward-purchases' || tabId === 'forwarded-history' || tabId === 'history') {
+                    target.classList.add('flex'); 
+                }
+            }
+
+            const footer = document.getElementById('main-footer');
+            if (footer) {
+                if (tabId === 'dashboard' || tabId === 'overview') {
+                    footer.classList.remove('hidden');
+                } else {
+                    footer.classList.add('hidden');
+                }
+            }
+            
+            const titles = {
+                'overview': 'System Overview',
+                'forwarded': 'Pending Sign-off',
+                'history': 'Signed Audit History',
+                'purchased': 'All Purchased Items',
+                'forward-purchases': 'Forward to Admin',
+                'forwarded-history': 'Forwarded History',
+                'profile': 'Officer Account',
+                'about': 'About Us'
+            };
+            document.getElementById('tab-title').innerText = titles[tabId] || 'Purchase Panel';
+
+            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+            const sideBtn = document.getElementById(`btn-${tabId}`);
+            if (sideBtn) sideBtn.classList.add('active');
+            
+            if(tabId === 'forwarded') fetchReports('forwarded');
+            // History tab is auto-refreshed via fetchOverviewData > filterSignedHistory
+        }
+
+        function logout() {
+            showStatus('Logging out...');
+            localStorage.removeItem('active_user_id'); 
+            setTimeout(() => {
+                window.location.href = "../login.html"; 
+            }, 800);
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 768 && isSidebarOpen) {
+                toggleSidebar(); 
+            }
+        });
+    </script>
+</body>
+</html>

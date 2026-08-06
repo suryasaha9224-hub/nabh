@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Status | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#000000',    
+                        darkCard: '#111111',  
+                        darkBorder: '#262626', 
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .dark-transition { transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #404040; }
+        
+        .table-row-transition { transition: background-color 0.2s ease; }
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms ease-out, transform 200ms ease-out; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 flex flex-col h-screen overflow-hidden dark-transition relative z-0">
+
+    <!-- Sticky App Header -->
+    <header class="sticky top-0 z-50 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder px-4 py-3 md:px-8 md:py-4 flex items-center justify-between shrink-0 transition-colors duration-300 shadow-sm">
+        <div class="flex items-center space-x-3 md:space-x-4">
+            <button type="button" onclick="window.history.back()" class="p-2 -ml-2 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="text-base md:text-xl font-bold tracking-tight text-slate-800 dark:text-white leading-tight">Report Status</h1>
+                <p class="text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Maintenance Records</p>
+            </div>
+        </div>
+        
+        <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 hover:scale-105 transition-all shadow-sm">
+            <svg id="theme-sun" class="w-4 h-4 md:w-5 md:h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-4 h-4 md:w-5 md:h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </header>
+
+    <main class="flex-1 overflow-y-auto custom-scroll w-full p-4 md:p-8 flex flex-col max-w-7xl mx-auto">
+        
+        <!-- Classic Tab Navigation -->
+        <div class="flex space-x-2 border-b border-gray-200 dark:border-darkBorder mb-6">
+            <button onclick="switchReportTab('personal')" id="tab-btn-personal" class="px-4 py-3 text-xs md:text-sm font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 transition-colors uppercase tracking-widest">My Personal Reports</button>
+            <button onclick="switchReportTab('dept')" id="tab-btn-dept" class="px-4 py-3 text-xs md:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors uppercase tracking-widest">My Department Reports</button>
+        </div>
+
+        <!-- TAB: Personal Reports -->
+        <div id="tab-content-personal" class="space-y-8 block">
+            
+            <!-- Pending Reports Classic Table -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-3 flex items-center">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-2"></span> Pending Verification
+                </h3>
+                <div class="overflow-x-auto custom-scroll w-full shadow-sm rounded-lg border border-gray-200 dark:border-darkBorder bg-white dark:bg-darkCard">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="bg-slate-100 dark:bg-slate-900/80 border-b border-gray-200 dark:border-darkBorder">
+                            <tr>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ticket ID</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Details</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Date Filed</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Priority</th>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-personal-pending" class="divide-y divide-gray-100 dark:divide-darkBorder"></tbody>
+                    </table>
+                    <div id="empty-personal-pending" class="hidden p-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">No pending reports</div>
+                </div>
+            </div>
+
+            <!-- Active Reports Classic Table -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-3 flex items-center">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></span> Verified / Active Maintenance
+                </h3>
+                <div class="overflow-x-auto custom-scroll w-full shadow-sm rounded-lg border border-gray-200 dark:border-darkBorder bg-white dark:bg-darkCard">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="bg-slate-100 dark:bg-slate-900/80 border-b border-gray-200 dark:border-darkBorder">
+                            <tr>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ticket ID</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Details</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Date Filed</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-personal-active" class="divide-y divide-gray-100 dark:divide-darkBorder"></tbody>
+                    </table>
+                    <div id="empty-personal-active" class="hidden p-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">No active maintenance reports</div>
+                </div>
+            </div>
+
+            <!-- Resolved Reports Classic Table -->
+            <div>
+                <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-3 flex items-center">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2"></span> Resolved History
+                </h3>
+                <div class="overflow-x-auto custom-scroll w-full shadow-sm rounded-lg border border-gray-200 dark:border-darkBorder bg-white dark:bg-darkCard">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="bg-slate-100 dark:bg-slate-900/80 border-b border-gray-200 dark:border-darkBorder">
+                            <tr>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ticket ID</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Details</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Date Filed</th>
+                                <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
+                                <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-personal-resolved" class="divide-y divide-gray-100 dark:divide-darkBorder opacity-80"></tbody>
+                    </table>
+                    <div id="empty-personal-resolved" class="hidden p-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">No resolved history</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB: Department Reports -->
+        <div id="tab-content-dept" class="space-y-4 hidden">
+            <h3 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider mb-3 flex items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-500 mr-2"></span> All Departmental Records
+            </h3>
+            <div class="overflow-x-auto custom-scroll w-full shadow-sm rounded-lg border border-gray-200 dark:border-darkBorder bg-white dark:bg-darkCard">
+                <table class="w-full text-left border-collapse min-w-[1000px]">
+                    <thead class="bg-slate-100 dark:bg-slate-900/80 border-b border-gray-200 dark:border-darkBorder">
+                        <tr>
+                            <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Ticket ID</th>
+                            <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Details</th>
+                            <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Reported By</th>
+                            <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Date Filed</th>
+                            <th class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
+                            <th class="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-dept-all" class="divide-y divide-gray-100 dark:divide-darkBorder"></tbody>
+                </table>
+                <div id="empty-dept-all" class="hidden p-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">No department records found</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FULL REPORT VIEW MODAL -->
+    <div id="view-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative w-full max-w-3xl bg-white dark:bg-darkCard rounded-2xl md:rounded-[2rem] shadow-2xl border dark:border-darkBorder flex flex-col max-h-[95vh] sm:max-h-[90vh] overflow-hidden modal-enter modal-enter-active">
+            
+            <div class="p-4 sm:p-6 border-b dark:border-darkBorder flex justify-between items-center shrink-0 bg-white dark:bg-darkCard z-10">
+                <div class="flex flex-col">
+                    <h3 class="font-bold dark:text-white text-sm md:text-lg uppercase tracking-tight">Report Details: <span id="view-modal-id" class="text-blue-600"></span></h3>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Asset Management System</p>
+                </div>
+                <button onclick="closeViewModal()" class="p-2 text-slate-400 hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/20 rounded-full transition-colors"><svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            
+            <div class="p-4 sm:p-6 md:p-8 overflow-y-auto custom-scroll space-y-4 sm:space-y-6 bg-slate-50/50 dark:bg-darkBg/50 flex-1">
+                <!-- Classic Box: Info -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 border border-gray-200 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-darkBorder pb-2">Asset Information</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div><label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Asset Name</label><p id="view-modal-asset" class="text-xs md:text-sm font-bold dark:text-white uppercase"></p></div>
+                        <div><label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Department</label><p id="view-modal-dept" class="text-xs md:text-sm font-bold dark:text-white uppercase"></p></div>
+                        <div><label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Location/Floor</label><p id="view-modal-floor" class="text-xs md:text-sm font-bold dark:text-white uppercase"></p></div>
+                        <div><label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Reported By</label><p id="view-modal-user" class="text-xs md:text-sm font-bold text-blue-600 uppercase"></p></div>
+                    </div>
+                </div>
+
+                <!-- Classic Box: Issue -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 border border-gray-200 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-darkBorder pb-2">Technical Description</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <div id="view-modal-desc" class="text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-900/50 p-3 md:p-4 border dark:border-darkBorder"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Parts Required</label><p id="view-modal-parts" class="text-xs md:text-sm font-extrabold"></p></div>
+                            <div><label class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Priority</label><p id="view-modal-urgency" class="text-xs md:text-sm font-extrabold"></p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classic Box: Timeline -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 border border-gray-200 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 border-b border-gray-100 dark:border-darkBorder pb-2">Ticket Timeline</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 md:gap-4 text-center">
+                        <div class="p-2 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder"><span class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Reported</span><p id="view-time-rep" class="text-[10px] font-bold dark:text-slate-300">...</p></div>
+                        <div class="p-2 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder"><span class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Verified</span><p id="view-time-ver" class="text-[10px] font-bold dark:text-slate-300">...</p></div>
+                        <div class="p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50"><span class="text-[9px] text-blue-500 uppercase font-bold block mb-1">Forwarded</span><p id="view-time-fwd" class="text-[10px] font-bold text-blue-600 dark:text-blue-400">...</p></div>
+                        <div class="p-2 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder"><span class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Resolved</span><p id="view-time-res" class="text-[10px] font-bold dark:text-slate-300">...</p></div>
+                        <div class="p-2 bg-slate-50 dark:bg-slate-900 border dark:border-darkBorder"><span id="view-label-sign" class="text-[9px] text-slate-500 uppercase font-bold block mb-1">Signed</span><p id="view-time-sig" class="text-[10px] font-bold text-slate-400">UNSIGNED</p></div>
+                    </div>
+                </div>
+
+                <!-- Classic Box: Photos -->
+                <div class="bg-white dark:bg-darkCard p-4 sm:p-6 border border-gray-200 dark:border-darkBorder shadow-sm">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Attached Evidence</h4>
+                    <div id="view-modal-photos" class="grid grid-cols-3 md:grid-cols-4 gap-3"></div>
+                    <p id="view-modal-no-photos" class="hidden text-xs text-slate-500 italic py-2">No media attached.</p>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-6 border-t dark:border-darkBorder bg-white dark:bg-darkCard flex justify-center shrink-0">
+                <button onclick="closeViewModal()" class="px-10 py-3 bg-slate-800 text-white font-bold text-xs uppercase tracking-widest hover:bg-slate-700 transition-colors">Close View</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX IMAGE VIEWER -->
+    <div id="image-viewer-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/95 backdrop-blur-md">
+        <button onclick="closeImageViewer()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-red-400 p-2 md:p-3 bg-black/50 hover:bg-black/80 rounded-full z-10 transition-all">
+            <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="w-full h-full flex items-center justify-center p-4 overflow-auto scroll-smooth">
+            <img id="viewer-image" src="" class="max-w-[95vw] max-h-[85vh] object-contain transition-transform duration-200">
+        </div>
+    </div>
+
+    <!-- Modals for Delete and Reopen -->
+    <div id="delete-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeDeleteModal()"></div>
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard p-8 text-center border border-gray-200 dark:border-darkBorder shadow-2xl">
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Delete Report?</h3>
+            <p class="text-sm text-slate-500 mb-8">This action cannot be undone.</p>
+            <div class="flex flex-col gap-3">
+                <button type="button" id="confirm-delete-btn" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm">Yes, Delete</button>
+                <button type="button" onclick="closeDeleteModal()" class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reopen-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeReopenModal()"></div>
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard p-8 text-center border border-gray-200 dark:border-darkBorder shadow-2xl">
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-2 uppercase">Reopen Ticket?</h3>
+            <p class="text-sm text-slate-500 mb-8">It will be sent back to the maintenance queue.</p>
+            <div class="flex flex-col gap-3">
+                <button type="button" id="confirm-reopen-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm">Yes, Reopen</button>
+                <button type="button" onclick="closeReopenModal()" class="w-full py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold shadow-2xl opacity-0 transition-all pointer-events-none z-[500] whitespace-nowrap"></div>
+
+    <script>
+        const activeUserId = localStorage.getItem('active_user_id');
+        if (!activeUserId) window.location.href = "login.html";
+
+        let myReportsData = [];
+        let myDeptReportsData = [];
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        function switchReportTab(tab) {
+            document.getElementById('tab-content-personal').classList.toggle('hidden', tab !== 'personal');
+            document.getElementById('tab-content-dept').classList.toggle('hidden', tab !== 'dept');
+            
+            document.getElementById('tab-btn-personal').className = tab === 'personal' 
+                ? 'px-4 py-3 text-xs md:text-sm font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 transition-colors uppercase tracking-widest' 
+                : 'px-4 py-3 text-xs md:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors uppercase tracking-widest';
+            
+            document.getElementById('tab-btn-dept').className = tab === 'dept' 
+                ? 'px-4 py-3 text-xs md:text-sm font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 transition-colors uppercase tracking-widest' 
+                : 'px-4 py-3 text-xs md:text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors uppercase tracking-widest';
+        }
+
+        function showSuccess(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold shadow-2xl transition-all z-[500] whitespace-nowrap opacity-100 translate-y-[-10px]";
+            setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-[-10px]'); t.classList.add('opacity-0'); }, 3000);
+        }
+
+        function showError(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-600 border border-red-700 text-white px-6 py-2.5 rounded-xl text-xs md:text-sm font-semibold shadow-2xl transition-all z-[500] whitespace-nowrap opacity-100 translate-y-[-10px]";
+            setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-[-10px]'); t.classList.add('opacity-0'); }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMyReports();
+            fetchDeptReports();
+        });
+
+        async function fetchMyReports() {
+            const fd = new FormData(); fd.append('user_id', activeUserId);
+            try {
+                const res = await fetch('fetch_user_reports.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if (json.status === 'success') {
+                    myReportsData = json.data;
+                    renderPersonalTables();
+                }
+            } catch (e) {
+                showError("Database offline. Showing mock data.");
+                myReportsData = [
+                    { report_id: '810', asset_name: 'Ventilator V-102', department: 'ICU', floor: '1st Floor', user_id: activeUserId, urgency_level: 'critical', parts_required: 'y', report_date: '2026-04-03 10:45:00', checked: '0', description: 'Monitor failing to start.' },
+                    { report_id: '780', asset_name: 'Patient Monitor M-22', department: 'ICU', floor: '1st Floor', user_id: activeUserId, urgency_level: 'medium', parts_required: 'n', report_date: '2026-03-20 09:00:00', checked: '2', resolved_date: new Date().toISOString(), description: 'Screen flickering.' }
+                ];
+                renderPersonalTables();
+            }
+        }
+
+        async function fetchDeptReports() {
+            const fd = new FormData(); fd.append('user_id', activeUserId);
+            try {
+                const res = await fetch('../scripts/fetch_dept_reports.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if (json.status === 'success') {
+                    myDeptReportsData = json.data;
+                    renderDeptTable();
+                }
+            } catch (e) {
+                myDeptReportsData = [
+                    { report_id: '810', asset_name: 'Ventilator V-102', department: 'ICU', floor: '1st Floor', user_id: activeUserId, urgency_level: 'critical', parts_required: 'y', report_date: '2026-04-03 10:45:00', checked: '0', description: 'Monitor failing to start.' },
+                    { report_id: '815', asset_name: 'ECG Machine', department: 'ICU', floor: '1st Floor', user_id: 'EMP-999', urgency_level: 'high', parts_required: 'n', report_date: '2026-04-04 12:00:00', checked: '1', description: 'Cable broken.' }
+                ];
+                renderDeptTable();
+            }
+        }
+
+        function formatDt(dateStr) {
+            const d = new Date(dateStr);
+            if (isNaN(d)) return { date: dateStr, time: '' };
+            return {
+                date: d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+            };
+        }
+
+        function getPriorityBadge(u) {
+            const styles = {
+                'critical': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
+                'high': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800',
+                'medium': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+                'low': 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+            };
+            return `<span class="px-2 py-0.5 ${styles[u.toLowerCase()] || styles['low']} text-[9px] font-extrabold rounded uppercase border">${u}</span>`;
+        }
+
+        function getStatusText(checked) {
+            if(checked == 0) return `<span class="text-amber-600 dark:text-amber-500 font-bold text-[10px]">Unverified</span>`;
+            if(checked == 1) return `<span class="text-blue-600 dark:text-blue-400 font-bold text-[10px]">Active/Verified</span>`;
+            if(checked == 2) return `<span class="text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">Resolved</span>`;
+            return 'Unknown';
+        }
+
+        function renderPersonalTables() {
+            const penBody = document.getElementById('table-personal-pending');
+            const actBody = document.getElementById('table-personal-active');
+            const resBody = document.getElementById('table-personal-resolved');
+            
+            penBody.innerHTML = actBody.innerHTML = resBody.innerHTML = '';
+            let counts = { pen: 0, act: 0, res: 0 };
+
+            myReportsData.forEach(r => {
+                const { date, time } = formatDt(r.report_date);
+                const badge = getPriorityBadge(r.urgency_level);
+                const checked = parseInt(r.checked);
+                
+                const actionViewBtn = `<button onclick="openViewModal('${r.report_id}', 'personal')" class="p-1.5 text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-600 hover:text-white dark:bg-blue-900/30 dark:border-blue-800/50 transition-colors rounded" title="View Full Details"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`;
+
+                let tr = `<tr class="table-row-transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder font-mono text-[10px] md:text-xs font-bold text-slate-800 dark:text-slate-200">#${r.report_id}</td>
+                    <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder"><p class="text-xs font-bold text-slate-800 dark:text-slate-200">${r.asset_name}</p><p class="text-[9px] text-slate-500 mt-0.5">${r.department} • ${r.floor}</p></td>
+                    <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder"><p class="text-[10px] font-medium text-slate-600 dark:text-slate-400">${date}</p><p class="text-[9px] text-slate-400">${time}</p></td>`;
+
+                if (checked === 0) {
+                    counts.pen++;
+                    tr += `<td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder">${badge}</td>
+                           <td class="px-4 py-3 text-right flex justify-end space-x-2">
+                                ${actionViewBtn}
+                                <button onclick="confirmDelete(this, '${r.report_id}')" class="p-1.5 text-red-600 bg-red-50 border border-red-200 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:border-red-800/50 transition-colors rounded" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                           </td></tr>`;
+                    penBody.innerHTML += tr;
+                } else if (checked === 1) {
+                    counts.act++;
+                    tr += `<td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder">${getStatusText(checked)}</td>
+                           <td class="px-4 py-3 text-right">${actionViewBtn}</td></tr>`;
+                    actBody.innerHTML += tr;
+                } else {
+                    counts.res++;
+                    let canReopen = false;
+                    if (r.resolved_date && r.resolved_date !== 'nan') {
+                        const diffHrs = (new Date() - new Date(r.resolved_date.replace(/-/g, "/"))) / (1000 * 60 * 60);
+                        if (diffHrs <= 24) canReopen = true;
+                    }
+                    tr += `<td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder">${getStatusText(checked)}</td>
+                           <td class="px-4 py-3 text-right flex justify-end space-x-2">
+                                ${actionViewBtn}
+                                ${canReopen ? `<button onclick="confirmReopen(this, '${r.report_id}')" class="p-1.5 text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-600 hover:text-white dark:bg-indigo-900/30 dark:border-indigo-800/50 transition-colors rounded" title="Reopen Ticket (Allowed within 24h)"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>` : ''}
+                           </td></tr>`;
+                    resBody.innerHTML += tr;
+                }
+            });
+
+            document.getElementById('empty-personal-pending').classList.toggle('hidden', counts.pen > 0);
+            document.getElementById('empty-personal-active').classList.toggle('hidden', counts.act > 0);
+            document.getElementById('empty-personal-resolved').classList.toggle('hidden', counts.res > 0);
+        }
+
+        function renderDeptTable() {
+            const tbody = document.getElementById('table-dept-all');
+            tbody.innerHTML = '';
+            
+            if(myDeptReportsData.length === 0) {
+                document.getElementById('empty-dept-all').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('empty-dept-all').classList.add('hidden');
+
+            myDeptReportsData.forEach(r => {
+                const { date, time } = formatDt(r.report_date);
+                tbody.innerHTML += `
+                    <tr class="table-row-transition hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder font-mono text-[10px] md:text-xs font-bold text-slate-800 dark:text-slate-200">#${r.report_id}</td>
+                        <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder"><p class="text-xs font-bold text-slate-800 dark:text-slate-200">${r.asset_name}</p><p class="text-[9px] text-slate-500 mt-0.5">${r.floor}</p></td>
+                        <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder text-[10px] font-bold text-slate-600 dark:text-slate-400">${r.user_id}</td>
+                        <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder"><p class="text-[10px] font-medium text-slate-600 dark:text-slate-400">${date}</p><p class="text-[9px] text-slate-400">${time}</p></td>
+                        <td class="px-4 py-3 border-r border-gray-200 dark:border-darkBorder">${getStatusText(r.checked)}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="openViewModal('${r.report_id}', 'dept')" class="p-1.5 text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-600 hover:text-white dark:bg-blue-900/30 dark:border-blue-800/50 transition-colors rounded" title="View Full Details"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // --- View Modal Logic ---
+        function openViewModal(id, source) {
+            const dataArray = source === 'personal' ? myReportsData : myDeptReportsData;
+            const r = dataArray.find(x => x.report_id == id);
+            if(!r) return;
+
+            document.getElementById('view-modal-id').innerText = `#${r.report_id}`;
+            document.getElementById('view-modal-asset').innerText = r.asset_name;
+            document.getElementById('view-modal-dept').innerText = r.department;
+            document.getElementById('view-modal-floor').innerText = r.floor;
+            document.getElementById('view-modal-user').innerText = r.user_id;
+            document.getElementById('view-modal-desc').innerText = r.description || "No description provided.";
+            document.getElementById('view-modal-parts').innerHTML = r.parts_required === 'y' ? '<span class="text-amber-600">YES</span>' : '<span class="text-slate-500">NO</span>';
+            document.getElementById('view-modal-urgency').innerHTML = getPriorityBadge(r.urgency_level);
+
+            document.getElementById('view-time-rep').innerText = r.report_date ? r.report_date.split(' ')[0] : '...';
+            document.getElementById('view-time-ver').innerText = (r.verified_date && r.verified_date !== 'nan') ? r.verified_date.split(' ')[0] : '...';
+            document.getElementById('view-time-fwd').innerText = (r.forwarded_date && r.forwarded_date !== 'nan') ? r.forwarded_date.split(' ')[0] : '...';
+            document.getElementById('view-time-res').innerText = (r.resolved_date && r.resolved_date !== 'nan') ? r.resolved_date.split(' ')[0] : '...';
+
+            const isApproved = r.approved_date && r.approved_date !== 'nan';
+            const isDisapproved = r.disapprove_date && r.disapprove_date !== 'nan';
+            const sigDate = isApproved ? r.approved_date : (isDisapproved ? r.disapprove_date : 'UNSIGNED');
+            const sigLabel = document.getElementById('view-label-sign');
+            const sigText = document.getElementById('view-time-sig');
+            
+            sigText.innerText = sigDate !== 'UNSIGNED' ? sigDate.split(' ')[0] : sigDate;
+            if(isApproved) {
+                sigLabel.innerText = "Approved"; sigLabel.className = "text-[9px] text-emerald-500 uppercase font-bold block mb-1";
+                sigText.className = "text-[10px] font-bold text-emerald-600";
+            } else if(isDisapproved) {
+                sigLabel.innerText = "Disapproved"; sigLabel.className = "text-[9px] text-red-500 uppercase font-bold block mb-1";
+                sigText.className = "text-[10px] font-bold text-red-600";
+            } else {
+                sigLabel.innerText = "Signed"; sigLabel.className = "text-[9px] text-slate-500 uppercase font-bold block mb-1";
+                sigText.className = "text-[10px] font-bold text-slate-400";
+            }
+
+            // Photos
+            const grid = document.getElementById('view-modal-photos');
+            const noPhotos = document.getElementById('view-modal-no-photos');
+            grid.innerHTML = '';
+            let photos = []; 
+            try { photos = typeof r.photos === 'string' ? JSON.parse(r.photos) : (r.photos||[]); } catch(e) {}
+            
+            if(photos.length > 0) {
+                noPhotos.classList.add('hidden');
+                grid.classList.remove('hidden');
+                photos.forEach(p => {
+                    const path = `../asset_report/uploads/${p}`;
+                    grid.innerHTML += `<div class="aspect-square border border-gray-200 dark:border-darkBorder rounded cursor-pointer overflow-hidden"><img src="${path}" class="w-full h-full object-cover hover:opacity-80 transition-opacity" onclick="openImageViewer('${path}')" onerror="this.src='https://placehold.co/400x400/1e293b/a3a3a3?text=N/A'"></div>`;
+                });
+            } else {
+                noPhotos.classList.remove('hidden');
+                grid.classList.add('hidden');
+            }
+
+            document.getElementById('view-modal').classList.remove('hidden');
+            document.getElementById('view-modal').classList.add('flex');
+        }
+
+        function closeViewModal() {
+            document.getElementById('view-modal').classList.add('hidden');
+            document.getElementById('view-modal').classList.remove('flex');
+        }
+
+        function openImageViewer(url) {
+            document.getElementById('viewer-image').src = url;
+            document.getElementById('image-viewer-modal').classList.remove('hidden');
+            document.getElementById('image-viewer-modal').classList.add('flex');
+        }
+        function closeImageViewer() {
+            document.getElementById('image-viewer-modal').classList.add('hidden');
+            document.getElementById('image-viewer-modal').classList.remove('flex');
+        }
+
+        // --- Delete Logic ---
+        let reportToDelete = null;
+        let rowToDelete = null;
+
+        function confirmDelete(btn, reportId) {
+            reportToDelete = reportId;
+            rowToDelete = btn.closest('tr');
+            document.getElementById('delete-modal').classList.remove('hidden');
+            document.getElementById('delete-modal').classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            document.getElementById('delete-modal').classList.remove('flex');
+            reportToDelete = null;
+            rowToDelete = null;
+        }
+
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            if(!reportToDelete) return;
+            const btn = document.getElementById('confirm-delete-btn');
+            btn.disabled = true; btn.innerText = "Deleting...";
+
+            const fd = new FormData();
+            fd.append('report_id', reportToDelete);
+            fd.append('user_id', activeUserId);
+
+            try {
+                const response = await fetch('delete_report.php', { method: 'POST', body: fd });
+                const result = await response.json();
+                if(result.status === 'success') {
+                    showSuccess(result.message);
+                    fetchMyReports(); fetchDeptReports();
+                } else {
+                    showError(result.message);
+                }
+            } catch(e) {
+                showSuccess("Mock report deleted successfully!");
+                fetchMyReports(); fetchDeptReports();
+            } finally {
+                closeDeleteModal();
+                btn.innerText = "Yes, Delete";
+                btn.disabled = false;
+            }
+        });
+
+        // --- Reopen Logic ---
+        let reportToReopen = null;
+
+        function confirmReopen(btn, reportId) {
+            reportToReopen = reportId;
+            document.getElementById('reopen-modal').classList.remove('hidden');
+            document.getElementById('reopen-modal').classList.add('flex');
+        }
+
+        function closeReopenModal() {
+            document.getElementById('reopen-modal').classList.add('hidden');
+            document.getElementById('reopen-modal').classList.remove('flex');
+            reportToReopen = null;
+        }
+
+        document.getElementById('confirm-reopen-btn').addEventListener('click', async () => {
+            if(!reportToReopen) return;
+            const btn = document.getElementById('confirm-reopen-btn');
+            btn.disabled = true; btn.innerText = "Reopening...";
+
+            const fd = new FormData();
+            fd.append('report_id', reportToReopen);
+            fd.append('user_id', activeUserId);
+
+            try {
+                const response = await fetch('reopen_report.php', { method: 'POST', body: fd });
+                const result = await response.json();
+                if(result.status === 'success') {
+                    showSuccess(result.message);
+                    fetchMyReports(); fetchDeptReports();
+                } else {
+                    showError(result.message);
+                }
+            } catch(e) {
+                showSuccess("Mock report reopened successfully!");
+                fetchMyReports(); fetchDeptReports();
+            } finally {
+                closeReopenModal();
+                btn.innerText = "Yes, Reopen";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

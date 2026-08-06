@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Registration | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#000000',    /* Pure Black */
+                        darkCard: '#111111',  /* Very Dark Gray */
+                        darkBorder: '#262626', /* Neutral 800 */
+                        slate: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717',
+                            950: '#0a0a0a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            transition: background-color 0.3s ease;
+        }
+
+        /* Modal Transitions */
+        .modal-enter {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .modal-enter-active {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 200ms, transform 200ms;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 flex flex-col min-h-screen relative overflow-x-hidden">
+
+    <!-- Top Header Navigation -->
+    <header class="absolute top-0 left-0 w-full px-4 py-4 md:px-8 md:py-6 flex justify-between items-center z-10">
+        <!-- Back Button -->
+        <a href="login.html" class="group flex items-center space-x-2 text-xs md:text-sm font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors">
+            <div class="p-1.5 md:p-2 bg-white dark:bg-darkCard border border-gray-200 dark:border-darkBorder rounded shadow-sm group-hover:border-blue-300 dark:group-hover:border-blue-800 transition-all">
+                <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"></path></svg>
+            </div>
+            <span class="hidden sm:block">Back to Login</span>
+            <span class="sm:hidden">Back</span>
+        </a>
+
+        <!-- Dark Mode Toggle -->
+        <button onclick="toggleDarkMode()" class="p-2 md:p-2.5 bg-white dark:bg-darkCard border border-gray-200 dark:border-darkBorder rounded shadow-sm text-slate-600 dark:text-amber-400 hover:scale-105 transition-all">
+            <svg id="theme-sun" class="w-4 h-4 md:w-5 md:h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-4 h-4 md:w-5 md:h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </header>
+
+    <!-- Main Registration Container -->
+    <main class="flex-1 flex items-center justify-center p-4 py-20 z-0">
+        
+        <!-- Registration Card -->
+        <div class="w-full max-w-md bg-white dark:bg-darkCard rounded-xl shadow-xl border border-gray-200 dark:border-darkBorder overflow-hidden">
+            
+            <!-- Card Header -->
+            <div class="p-6 md:p-8 border-b border-gray-100 dark:border-darkBorder text-center bg-slate-50/50 dark:bg-slate-900/30">
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 shadow">N</div>
+                <h1 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-white tracking-tight">Staff Registration</h1>
+                <p class="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 mt-1.5 uppercase tracking-widest">NABH Guardian Access</p>
+            </div>
+
+            <!-- Error Banner (Hidden by default) -->
+            <div id="error-banner" class="hidden bg-red-100 border-b border-red-200 text-red-700 px-6 py-3 text-xs md:text-sm font-bold text-center">
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registration-form" onsubmit="handleRegistration(event)" class="p-6 md:p-8 space-y-4 md:space-y-5">
+                
+                <!-- Staff ID Field -->
+                <div>
+                    <label for="staff_id" class="block text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Staff ID <span class="text-red-500">*</span></label>
+                    <input type="text" id="staff_id" name="staff_id" required placeholder="e.g. EMP-1024" maxlength="10"
+                           class="w-full px-3 py-2 md:px-4 md:py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded text-xs md:text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400">
+                </div>
+
+                <!-- Staff Name Field -->
+                <div>
+                    <label for="staff_name" class="block text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Full Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="staff_name" name="staff_name" required placeholder="Enter your full official name" 
+                           class="w-full px-3 py-2 md:px-4 md:py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded text-xs md:text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400">
+                </div>
+
+                <!-- Staff Email Field -->
+                <div>
+                    <label for="staff_email" class="block text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Official Email <span class="text-red-500">*</span></label>
+                    <input type="email" id="staff_email" name="staff_email" required placeholder="name@hospital.com" maxlength="40"
+                           class="w-full px-3 py-2 md:px-4 md:py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded text-xs md:text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400">
+                </div>
+
+                <!-- Department Dropdown -->
+                <div>
+                    <label for="dept_id" class="block text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Primary Department <span class="text-red-500">*</span></label>
+                    <select id="dept_id" name="dept_id" required
+                            class="w-full px-3 py-2 md:px-4 md:py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded text-xs md:text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer">
+                        <option value="" disabled selected hidden>Select your department...</option>
+                        <!-- Options populated via JS -->
+                    </select>
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label for="password" class="block text-[10px] md:text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1.5">Create Password <span class="text-red-500">*</span></label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••" maxlength="20"
+                           class="w-full px-3 py-2 md:px-4 md:py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded text-xs md:text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-400">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-4">
+                    <button type="submit" id="submit-btn" class="w-full py-2.5 md:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-xs md:text-sm shadow transition-all flex justify-center items-center">
+                        <span>Submit Registration</span>
+                    </button>
+                </div>
+                
+                <div class="text-center pt-2">
+                    <p class="text-[10px] md:text-xs text-slate-500 dark:text-slate-400">
+                        Already have an account? <a href="login.html" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">Log in here</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Success Popup Modal -->
+    <div id="success-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4">
+        <!-- Blur Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <!-- Modal Card -->
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-xl shadow-2xl border border-gray-200 dark:border-darkBorder flex flex-col modal-enter modal-enter-active">
+            
+            <div class="p-6 md:p-8 text-center flex flex-col items-center">
+                <!-- Success Icon -->
+                <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                
+                <h3 class="text-lg md:text-xl font-bold text-slate-800 dark:text-white mb-2">Registration Submitted</h3>
+                <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Thank you for registering. <strong class="text-slate-700 dark:text-slate-300">After verification by the admin, your account will be activated.</strong> You will receive an email once approved.
+                </p>
+            </div>
+
+            <!-- Footer Action -->
+            <div class="p-4 border-t border-gray-100 dark:border-darkBorder bg-slate-50 dark:bg-slate-900/50 rounded-b-xl flex justify-center">
+                <button onclick="closeModal()" class="w-full md:w-auto px-10 py-2.5 bg-slate-800 hover:bg-slate-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs md:text-sm font-bold rounded shadow transition-colors">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Dark Mode Persistence & Toggle ---
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Initialize Theme
+        if (localStorage.getItem('theme') === 'dark' || 
+           (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+
+        // --- Fetch Departments on Page Load ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('register.php?action=get_departments');
+                const json = await res.json();
+                if(json.status === 'success') {
+                    const select = document.getElementById('dept_id');
+                    json.data.forEach(d => {
+                        select.innerHTML += `<option value="${d.dept_id}">${d.dept_name} (${d.dept_id})</option>`;
+                    });
+                }
+            } catch(e) {
+                console.error("Failed to load departments", e);
+            }
+        });
+
+        // --- Form Handling & PHP Fetch Logic ---
+        const modal = document.getElementById('success-modal');
+        const form = document.getElementById('registration-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const errorBanner = document.getElementById('error-banner');
+
+        async function handleRegistration(event) {
+            event.preventDefault(); // Prevent standard form submission
+
+            // Hide previous errors
+            errorBanner.classList.add('hidden');
+
+            const formData = new FormData(form);
+
+            // UI State change
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = `<span>Processing...</span>`;
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70');
+
+            try {
+                // Send the data to the PHP script using Fetch API
+                const response = await fetch('register.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // Show Success Popup
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    form.reset();
+                } else {
+                    // Show Error Banner (e.g., Staff ID already exists)
+                    errorBanner.innerText = result.message;
+                    errorBanner.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error("Fetch error:", error);
+                errorBanner.innerText = "A server error occurred. Please ensure your XAMPP server is running and register.php exists.";
+                errorBanner.classList.remove('hidden');
+            } finally {
+                // Restore button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70');
+            }
+        }
+
+        function closeModal() {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            // Redirect to login page after closing popup
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>

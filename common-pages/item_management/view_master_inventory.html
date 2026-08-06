@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Inventory | NABH Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#000000',    
+                        darkCard: '#111111',  
+                        darkBorder: '#262626', 
+                        slate: {
+                            50: '#fafafa', 100: '#f5f5f5', 200: '#e5e5e5', 300: '#d4d4d4',
+                            400: '#a3a3a3', 500: '#737373', 600: '#525252', 700: '#404040',
+                            800: '#262626', 900: '#171717', 950: '#0a0a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #404040; }
+        .table-row-transition { transition: all 0.2s ease; }
+        .modal-enter { opacity: 0; transform: scale(0.95); }
+        .modal-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms, transform 200ms; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-darkBg dark:text-slate-200 min-h-screen overflow-x-hidden transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="h-14 md:h-16 bg-white dark:bg-darkCard border-b border-gray-200 dark:border-darkBorder flex items-center justify-between px-3 md:px-6 sticky top-0 z-40 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <button onclick="window.history.back()" class="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Master Inventory</h1>
+                <p class="text-[9px] md:text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Global Equipment Database</p>
+            </div>
+        </div>
+        
+        <button onclick="toggleDarkMode()" class="p-1.5 md:p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-darkBorder text-slate-600 dark:text-amber-400 transition-transform hover:scale-105">
+            <svg id="theme-sun" class="w-4 h-4 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+            <svg id="theme-moon" class="w-4 h-4 block dark:hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+        </button>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        
+        <!-- Filter Header -->
+        <section class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm p-4 md:p-6">
+            <div class="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-darkBorder pb-3">
+                <h2 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Advanced Filters</h2>
+                <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg flex items-center shadow-sm">
+                    <span class="text-[9px] uppercase font-bold tracking-widest mr-2">Total Records</span>
+                    <span id="total-count" class="font-extrabold text-sm">0</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 items-end">
+                <div class="col-span-2">
+                    <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Search Keywords</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </span>
+                        <input type="text" id="search-input" onkeyup="filterItems()" placeholder="Name, Model, Serial..." 
+                               class="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-xs transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Location Status</label>
+                    <select id="status-filter" onchange="filterItems()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-xs font-semibold cursor-pointer transition-all">
+                        <option value="all">All Active Items</option>
+                        <option value="assigned">Currently Assigned</option>
+                        <option value="unassigned">Unassigned (In Store)</option>
+                        <option value="discarded">Discarded / Archived</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Filter by Dept</label>
+                    <select id="dept-filter" onchange="filterItems()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-xs font-semibold cursor-pointer transition-all">
+                        <option value="all">All Departments</option>
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Added Before</label>
+                    <input type="date" id="date-added-filter" onchange="filterItems()" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-gray-200 dark:border-darkBorder rounded-xl outline-none focus:ring-2 focus:ring-blue-500 dark:text-white text-xs transition-all cursor-pointer">
+                </div>
+            </div>
+        </section>
+
+        <!-- Master Table -->
+        <section class="bg-white dark:bg-darkCard rounded-2xl border border-gray-200 dark:border-darkBorder shadow-sm flex flex-col overflow-hidden min-h-[400px]">
+            <div class="flex-1 overflow-x-auto custom-scroll">
+                <table class="w-full text-left border-collapse min-w-[1000px]">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-darkBorder">
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Item ID</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Information</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status / Location</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body" class="divide-y divide-gray-100 dark:divide-darkBorder">
+                        <!-- Loaded via AJAX -->
+                    </tbody>
+                </table>
+                
+                <!-- Loading State -->
+                <div id="loader" class="py-20 text-center flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Fetching Master Database...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-slate-400">
+                    <svg class="w-16 h-16 mx-auto mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    <p class="text-sm font-bold uppercase tracking-widest">No items found matching criteria.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- VIEW ITEM MODAL -->
+    <div id="view-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative w-full max-w-2xl bg-white dark:bg-darkCard rounded-2xl shadow-2xl border border-gray-200 dark:border-darkBorder flex flex-col max-h-[95vh] overflow-hidden modal-enter modal-enter-active">
+            
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-slate-900 z-10 shrink-0">
+                <div class="flex flex-col">
+                    <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Asset Details <span id="view-item-id-title" class="text-blue-500"></span></h3>
+                    <p class="text-[8px] md:text-[9px] text-slate-500 font-bold uppercase tracking-widest">Comprehensive View</p>
+                </div>
+                <button onclick="closeViewModal()" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 sm:p-2 bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/30 rounded-full">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-4 sm:p-5 overflow-y-auto custom-scroll space-y-4 sm:space-y-6 flex-1 bg-white dark:bg-darkBg">
+                
+                <!-- Basic Info Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 bg-slate-50 dark:bg-slate-800/50 p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-darkBorder">
+                    <div><span class="block text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5 md:mb-1">Asset Name</span><p id="view-asset-name" class="text-xs md:text-sm font-bold text-slate-800 dark:text-white"></p></div>
+                    <div><span class="block text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5 md:mb-1">Model</span><p id="view-asset-model" class="text-[10px] md:text-xs font-mono text-slate-800 dark:text-slate-300"></p></div>
+                    <div><span class="block text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5 md:mb-1">Manufacturer</span><p id="view-asset-mfr" class="text-[10px] md:text-xs text-slate-800 dark:text-slate-300"></p></div>
+                    <div><span class="block text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-0.5 md:mb-1">Serial Number</span><p id="view-asset-sn" class="text-[10px] md:text-xs font-mono font-bold text-blue-600 dark:text-blue-400"></p></div>
+                </div>
+
+                <!-- Status & Lifecycle Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div class="p-3 sm:p-4 border border-gray-100 dark:border-darkBorder rounded-xl shadow-sm bg-white dark:bg-darkCard">
+                        <span class="block text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-1.5 md:mb-2 border-b border-gray-50 dark:border-darkBorder pb-1">Current Status</span>
+                        <p id="view-asset-status" class="text-xs md:text-sm font-bold text-slate-800 dark:text-white"></p>
+                    </div>
+                    <div class="p-3 sm:p-4 border border-gray-100 dark:border-darkBorder rounded-xl shadow-sm bg-white dark:bg-darkCard">
+                        <span class="block text-[8px] md:text-[9px] font-bold text-slate-500 uppercase mb-1.5 md:mb-2 border-b border-gray-50 dark:border-darkBorder pb-1">Key Dates</span>
+                        <div class="text-[10px] md:text-xs text-slate-600 dark:text-slate-400 space-y-0.5 md:space-y-1">
+                            <p>Added to DB: <span id="view-asset-added" class="font-medium text-slate-800 dark:text-slate-200"></span></p>
+                            <p>Purchased: <span id="view-asset-purchased" class="font-medium text-slate-800 dark:text-slate-200"></span></p>
+                            <p>Last Assigned: <span id="view-asset-last-assigned" class="font-medium text-slate-800 dark:text-slate-200">Loading...</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer Buttons (Stacked on Mobile, Row on Desktop) -->
+            <div class="p-3 sm:p-4 border-t border-gray-100 dark:border-darkBorder bg-slate-50 dark:bg-slate-900 shrink-0 flex flex-col sm:flex-row justify-between gap-3">
+                <button onclick="openHistoryModal()" class="w-full sm:w-auto justify-center px-4 py-2.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-widest hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors flex items-center shadow-sm">
+                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Allocation History</span>
+                </button>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                    <button onclick="closeViewModal()" class="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-widest hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors shadow-sm">Close</button>
+                    <button id="view-edit-btn" onclick="switchToEditMode()" class="w-full sm:w-auto justify-center px-5 py-2.5 bg-blue-600 text-white font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-blue-700 transition-colors flex items-center">
+                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        <span>Edit Record</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORY MODAL (Secondary Window) -->
+    <div id="history-modal" class="fixed inset-0 z-[110] hidden items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative w-full max-w-2xl bg-white dark:bg-darkCard rounded-2xl shadow-2xl border dark:border-darkBorder flex flex-col max-h-[90vh] overflow-hidden modal-enter modal-enter-active">
+            
+            <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-slate-900 z-10 shrink-0">
+                <div class="flex flex-col">
+                    <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Allocation History</h3>
+                    <p class="text-[8px] md:text-[9px] text-slate-500 font-bold uppercase tracking-widest">Asset Lifecycle Records</p>
+                </div>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 sm:p-2 bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/30 rounded-full">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="p-3 sm:p-5 overflow-y-auto custom-scroll flex-1 bg-white dark:bg-darkBg">
+                <div class="border border-gray-200 dark:border-darkBorder rounded-xl overflow-hidden shadow-sm">
+                    <table class="w-full text-left border-collapse bg-white dark:bg-darkCard">
+                        <thead class="bg-slate-100 dark:bg-slate-900 border-b border-gray-200 dark:border-darkBorder">
+                            <tr>
+                                <th class="px-3 md:px-4 py-2 md:py-3 text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest border-b border-r border-gray-200 dark:border-darkBorder">Department</th>
+                                <th class="px-3 md:px-4 py-2 md:py-3 text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest border-b border-r border-gray-200 dark:border-darkBorder">Allocated Date</th>
+                                <th class="px-3 md:px-4 py-2 md:py-3 text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest border-b border-gray-200 dark:border-darkBorder">Revoked / Discarded Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-gray-100 dark:divide-darkBorder">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="p-3 sm:p-4 border-t border-gray-100 dark:border-darkBorder bg-slate-50 dark:bg-slate-900 shrink-0 flex justify-end">
+                <button onclick="closeHistoryModal()" class="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-widest hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors flex items-center shadow-sm">
+                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    <span>Back to Details</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Delete Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-[120] hidden items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+        <div class="absolute inset-0 bg-transparent" onclick="closeDeleteModal()"></div>
+        <div class="relative w-full max-w-sm bg-white dark:bg-darkCard rounded-3xl shadow-2xl p-6 sm:p-8 text-center border border-gray-200 dark:border-darkBorder modal-enter modal-enter-active">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </div>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-2 uppercase tracking-tight">Confirm Deletion</h3>
+            <p id="modal-desc" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-6 sm:mb-8 leading-relaxed"></p>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="closeDeleteModal()" class="w-full py-2.5 sm:py-3 text-slate-500 font-bold hover:text-slate-700 dark:text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors">Cancel</button>
+                <button id="confirm-btn" class="w-full py-2.5 sm:py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition-all uppercase text-[10px] sm:text-xs tracking-widest">
+                    Remove System
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT ITEM MODAL -->
+    <div id="edit-modal" class="fixed inset-0 z-[100] hidden items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+        <div class="relative w-full max-w-lg bg-white dark:bg-darkCard rounded-2xl shadow-2xl border border-gray-200 dark:border-darkBorder flex flex-col max-h-[90vh] overflow-hidden modal-enter modal-enter-active">
+            <div class="p-4 sm:p-5 border-b border-gray-100 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-slate-900 shrink-0">
+                <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">Edit Asset Record</h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 sm:p-2 bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/30 rounded-full"><svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            
+            <div class="overflow-y-auto custom-scroll flex-1">
+                <form id="edit-item-form" onsubmit="submitEditItem(event)" class="p-4 sm:p-6 space-y-4">
+                    <input type="hidden" id="edit-item-id" name="item_id">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Asset Name</label>
+                            <input type="text" id="edit-item-name" name="item_name" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-xs md:text-sm transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Model Number</label>
+                            <input type="text" id="edit-item-model" name="item_model" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-xs md:text-sm transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Manufacturer</label>
+                            <input type="text" id="edit-item-mfr" name="item_manufacturer" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-xs md:text-sm transition-all">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Serial Number</label>
+                            <input type="text" id="edit-item-sn" name="serial_number" required class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-xs md:text-sm transition-all font-mono">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Edit JSON History (Advanced)</label>
+                            <textarea id="edit-item-history" name="allocation_json" rows="4" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-gray-200 dark:border-darkBorder rounded-lg outline-none focus:ring-1 focus:ring-blue-500 dark:text-white text-[10px] md:text-xs font-mono transition-all custom-scroll"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-gray-100 dark:border-darkBorder flex flex-col sm:flex-row justify-end gap-3">
+                        <button type="button" onclick="closeEditModal()" class="w-full sm:w-auto justify-center px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-sm">Cancel</button>
+                        <button type="submit" id="edit-submit-btn" class="w-full sm:w-auto justify-center px-6 py-2.5 bg-blue-600 text-white font-bold rounded-lg text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-blue-700 transition-colors">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-[10px] md:text-sm font-bold text-white shadow-2xl opacity-0 transition-all pointer-events-none z-[300] whitespace-nowrap"></div>
+
+    <script>
+        const activeUserId = localStorage.getItem('active_user_id');
+        let allItemsData = [];
+        let currentlyViewedItem = null;
+        let currentHistoryJson = '{}';
+        let itemToDelete = null;
+
+        // --- Theme Management ---
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+        function showStatus(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-[10px] md:text-sm font-bold text-white shadow-2xl transition-all z-[300] ${isError ? 'bg-red-600' : 'bg-slate-900 dark:bg-slate-800'}`;
+            t.classList.remove('opacity-0'); t.classList.add('translate-y-[-10px]', 'opacity-100');
+            setTimeout(() => { t.classList.add('opacity-0'); t.classList.remove('translate-y-[-10px]', 'opacity-100'); }, 3000);
+        }
+
+        // --- Data Fetching ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!activeUserId) {
+                window.location.href = "../../login.html"; 
+                return;
+            }
+            await fetchDepartments();
+            await fetchInventory();
+        });
+
+        async function fetchDepartments() {
+            try {
+                const fd = new FormData(); fd.append('action', 'fetch'); fd.append('admin_id', activeUserId);
+                const res = await fetch('../scripts/process_departments.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    const sel = document.getElementById('dept-filter');
+                    json.data.forEach(d => sel.innerHTML += `<option value="${d.dept_id}">${d.dept_name}</option>`);
+                }
+            } catch(e) {}
+        }
+
+        async function fetchInventory() {
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            try {
+                const fd = new FormData();
+                fd.append('admin_id', activeUserId);
+                
+                const res = await fetch('../scripts/fetch_all_items.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    allItemsData = json.data;
+                    filterItems(); // Renders the table initially
+                } else {
+                    showStatus(json.message, true);
+                }
+            } catch(e) { 
+                console.error(e);
+                showStatus("Connection Error: Could not load inventory", true); 
+            }
+            document.getElementById('loader').classList.add('hidden');
+        }
+
+        // --- Date Formatter ---
+        function formatDate(dateStr) {
+            if (!dateStr || dateStr === 'nan') return 'N/A';
+            const d = new Date(dateStr.replace(/-/g, "/"));
+            if (isNaN(d)) return dateStr;
+            return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        // --- Rendering ---
+        function renderTable(data) {
+            const tbody = document.getElementById('inventory-table-body');
+            const empty = document.getElementById('empty-state');
+            document.getElementById('total-count').innerText = data.length;
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) {
+                empty.classList.remove('hidden');
+                empty.classList.add('flex');
+                return;
+            }
+            empty.classList.add('hidden');
+            empty.classList.remove('flex');
+
+            data.forEach(item => {
+                const isDiscarded = item.is_discarded == 1 || item.is_discarded == '1' || item.is_discarded === true;
+                const isAssigned = !isDiscarded && item.dept_name !== null && item.dept_name !== undefined && item.dept_name !== 'nan';
+                
+                let statusBadge = '';
+                if (isDiscarded) {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-[10px] font-bold rounded-lg border border-red-200 dark:border-red-800 uppercase tracking-tighter">Discarded</span>`;
+                } else if (isAssigned) {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-lg border border-emerald-200 dark:border-emerald-800 uppercase tracking-tighter">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            Assigned
+                       </span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 uppercase tracking-tighter">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                            Unassigned
+                       </span>`;
+                }
+
+                const assignmentDetails = isDiscarded 
+                    ? `<p class="text-[10px] text-red-500 italic mt-1.5 font-bold">Permanently Archived</p>`
+                    : (isAssigned 
+                        ? `<p class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1">${item.dept_name}</p>
+                           <p class="text-[9px] text-slate-500 uppercase mt-0.5">On ${formatDate(item.date_assigned)}</p>` 
+                        : `<p class="text-[10px] text-slate-400 italic mt-1.5">In General Storage</p>`);
+
+                // Hide edit/delete functionality if discarded
+                const actionBtns = isDiscarded
+                    ? `<button onclick="viewItem('${item.item_id}')" class="p-2 bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-900/30 text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg transition-colors border border-gray-200 dark:border-slate-700 shadow-sm" title="View Details">
+                            <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                       </button>
+                       <div class="px-2 py-1.5 inline-block text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-transparent">Archived</div>`
+                    : `<button onclick="viewItem('${item.item_id}')" class="p-2 bg-slate-100 hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-900/30 text-slate-600 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 rounded-lg transition-colors border border-gray-200 dark:border-slate-700 shadow-sm" title="View Details">
+                            <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                        <button onclick='confirmDelete(${JSON.stringify(item).replace(/"/g, '&quot;')})' class="p-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 rounded-lg transition-colors border border-red-100 dark:border-red-900/30 shadow-sm" title="Delete & Discard">
+                            <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>`;
+
+                tbody.innerHTML += `
+                    <tr class="table-row-transition hover:bg-slate-50 dark:hover:bg-slate-900/50 group">
+                        <td class="px-5 py-4">
+                            <p class="font-mono text-[11px] md:text-xs font-bold ${isDiscarded ? 'text-red-500 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}">#${item.item_id}</p>
+                            <p class="text-[9px] text-slate-500 font-medium mt-1 uppercase">Added: ${formatDate(item.date_added)}</p>
+                        </td>
+                        <td class="px-5 py-4">
+                            <p class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200 uppercase">${item.item_name}</p>
+                            <p class="text-[10px] text-slate-500 font-mono mt-0.5 uppercase tracking-tight">${item.item_model} • SN: ${item.serial_number}</p>
+                        </td>
+                        <td class="px-5 py-4 text-[11px] md:text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-widest">${item.item_manufacturer}</td>
+                        <td class="px-5 py-4">
+                            <div class="flex flex-col items-start">
+                                ${statusBadge}
+                                ${assignmentDetails}
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 text-right">
+                            <div class="flex items-center justify-end space-x-2">
+                                ${actionBtns}
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // --- Filtering ---
+        function filterItems() {
+            const search = document.getElementById('search-input').value.toLowerCase().trim();
+            const status = document.getElementById('status-filter').value;
+            const dept = document.getElementById('dept-filter').value;
+            const dateAdded = document.getElementById('date-added-filter').value;
+
+            const filtered = allItemsData.filter(i => {
+                const matchSearch = i.item_name.toLowerCase().includes(search) || 
+                                    i.item_model.toLowerCase().includes(search) || 
+                                    i.serial_number.toLowerCase().includes(search) ||
+                                    (i.dept_name && i.dept_name.toLowerCase().includes(search)) ||
+                                    (i.dept_id && i.dept_id.toLowerCase().includes(search));
+                
+                const isDiscarded = i.is_discarded == 1 || i.is_discarded == '1' || i.is_discarded === true;
+                const isAssigned = !isDiscarded && i.dept_name !== null && i.dept_name !== undefined && i.dept_name !== 'nan';
+                const isInStore = !isDiscarded && !isAssigned;
+                
+                let matchStatus = false;
+                if(status === 'all') matchStatus = !isDiscarded; // Hide discarded items from general view by default
+                else if(status === 'assigned') matchStatus = isAssigned;
+                else if(status === 'unassigned') matchStatus = isInStore;
+                else if(status === 'discarded') matchStatus = isDiscarded;
+
+                let matchDept = true;
+                if(dept !== 'all') {
+                    matchDept = i.dept_id === dept;
+                }
+
+                let matchDate = true;
+                if(dateAdded) {
+                    const itemDate = i.date_added ? i.date_added.split(' ')[0] : '';
+                    matchDate = itemDate <= dateAdded;
+                }
+
+                return matchSearch && matchStatus && matchDept && matchDate;
+            });
+            renderTable(filtered);
+        }
+
+        // --- View & History Logic ---
+        async function viewItem(itemId) {
+            currentlyViewedItem = allItemsData.find(i => i.item_id == itemId);
+            if(!currentlyViewedItem) return;
+
+            const isDiscarded = currentlyViewedItem.is_discarded == 1 || currentlyViewedItem.is_discarded == '1' || currentlyViewedItem.is_discarded === true;
+            const isAssigned = !isDiscarded && currentlyViewedItem.dept_name !== null && currentlyViewedItem.dept_name !== undefined && currentlyViewedItem.dept_name !== 'nan';
+
+            document.getElementById('view-item-id-title').innerText = `#${itemId}`;
+            document.getElementById('view-asset-name').innerText = currentlyViewedItem.item_name;
+            document.getElementById('view-asset-model').innerText = currentlyViewedItem.item_model;
+            document.getElementById('view-asset-mfr').innerText = currentlyViewedItem.item_manufacturer;
+            document.getElementById('view-asset-sn').innerText = currentlyViewedItem.serial_number;
+            
+            document.getElementById('view-asset-added').innerText = formatDate(currentlyViewedItem.date_added);
+            
+            let statusHtml = '';
+            if (isDiscarded) {
+                statusHtml = `<span class="text-red-600 dark:text-red-400 font-bold">Permanently Discarded</span>`;
+            } else if (isAssigned) {
+                statusHtml = `<span class="text-blue-600 dark:text-blue-400 font-bold">Assigned to ${currentlyViewedItem.dept_name}</span>`;
+            } else {
+                statusHtml = `<span class="text-slate-500 dark:text-slate-400 font-bold">In Store (Unassigned)</span>`;
+            }
+            document.getElementById('view-asset-status').innerHTML = statusHtml;
+
+            // Hide the edit button if the item is discarded
+            const editBtn = document.getElementById('view-edit-btn');
+            if (editBtn) {
+                if (isDiscarded) {
+                    editBtn.classList.add('hidden');
+                    editBtn.classList.remove('flex');
+                } else {
+                    editBtn.classList.remove('hidden');
+                    editBtn.classList.add('flex');
+                }
+            }
+            
+            // Clear prior data
+            document.getElementById('view-asset-purchased').innerText = 'Loading...';
+            document.getElementById('view-asset-last-assigned').innerText = 'Loading...';
+            document.getElementById('history-table-body').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-blue-500 text-xs font-bold animate-pulse">Loading detailed history...</td></tr>`;
+
+            document.getElementById('view-modal').classList.remove('hidden');
+            document.getElementById('view-modal').classList.add('flex');
+
+            // Fetch Detailed History
+            try {
+                const fd = new FormData();
+                fd.append('action', 'get_details');
+                fd.append('item_id', itemId);
+                const res = await fetch('../scripts/process_master_inventory.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    currentHistoryJson = json.data.allocation;
+                    document.getElementById('view-asset-purchased').innerText = formatDate(json.data.date_purchased);
+                    
+                    // Smart calculation: Scan JSON to find the absolute latest assigned date
+                    let lastAssigned = 'N/A';
+                    if (currentHistoryJson && currentHistoryJson !== '{}' && currentHistoryJson !== 'nan') {
+                        try {
+                            // Robust Parse Check to avoid [object Object] errors
+                            const allocData = typeof currentHistoryJson === 'string' ? JSON.parse(currentHistoryJson) : currentHistoryJson;
+                            let latestDate = 0;
+                            let latestDateStr = 'N/A';
+                            
+                            for (const dept in allocData) {
+                                const dateStr = allocData[dept].allocation_date;
+                                if (dateStr && dateStr !== 'nan') {
+                                    const ts = new Date(dateStr.replace(/-/g, "/")).getTime();
+                                    if (ts > latestDate) {
+                                        latestDate = ts;
+                                        latestDateStr = formatDate(dateStr);
+                                    }
+                                }
+                            }
+                            if (latestDate > 0) lastAssigned = latestDateStr;
+                        } catch(e) { console.error("Error parsing history JSON"); }
+                    }
+                    
+                    document.getElementById('view-asset-last-assigned').innerText = lastAssigned;
+                    renderHistoryTable(currentHistoryJson);
+                } else {
+                    document.getElementById('view-asset-purchased').innerText = 'N/A';
+                    document.getElementById('view-asset-last-assigned').innerText = 'N/A';
+                    renderHistoryTable('{}'); // Empty mock
+                }
+            } catch(e) {
+                console.error("History fetch error:", e);
+                document.getElementById('view-asset-purchased').innerText = 'N/A (Offline)';
+                document.getElementById('view-asset-last-assigned').innerText = 'N/A (Offline)';
+                renderHistoryTable('{"Mock Department": {"allocation_date": "2026-01-01 10:00:00", "revoke_date": "nan"}}');
+            }
+        }
+
+        function renderHistoryTable(historyJsonStr) {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+            
+            if(!historyJsonStr || historyJsonStr === 'nan' || historyJsonStr === '{}') {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">No historical data found.</td></tr>';
+                return;
+            }
+
+            try {
+                // Robust Parse Check
+                const history = typeof historyJsonStr === 'string' ? JSON.parse(historyJsonStr) : historyJsonStr;
+                const depts = Object.keys(history);
+                
+                if(depts.length === 0) {
+                     tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-400 font-bold uppercase tracking-widest text-[10px]">No historical data found.</td></tr>';
+                     return;
+                }
+                
+                // Convert to array of entries to sort by allocation date descending (newest on top)
+                const historyArray = depts.map(dept => {
+                    return { dept: dept, ...history[dept] };
+                });
+                
+                historyArray.sort((a, b) => {
+                    const timeA = (a.allocation_date && a.allocation_date !== 'nan') ? new Date(a.allocation_date.replace(/-/g, "/")).getTime() : 0;
+                    const timeB = (b.allocation_date && b.allocation_date !== 'nan') ? new Date(b.allocation_date.replace(/-/g, "/")).getTime() : 0;
+                    return timeB - timeA;
+                });
+                
+                historyArray.forEach(item => {
+                    const alloc = (item.allocation_date && item.allocation_date !== 'nan') ? formatDate(item.allocation_date) : 'N/A';
+                    
+                    let revok = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-[9px] font-bold uppercase border border-emerald-200 dark:border-emerald-800">Currently Active</span>';
+                    
+                    if (item.discarded_date && item.discarded_date !== 'nan') {
+                        revok = `<span class="text-red-600 dark:text-red-400 font-bold">${formatDate(item.discarded_date)} <br><span class="text-[8px] sm:text-[9px] opacity-80 uppercase tracking-widest">(Permanently Discarded)</span></span>`;
+                    } else if (item.revoke_date && item.revoke_date !== 'nan') {
+                        revok = `<span class="text-amber-600 dark:text-amber-400 font-medium">${formatDate(item.revoke_date)}</span>`;
+                    }
+                    
+                    tbody.innerHTML += `
+                        <tr class="border-b border-slate-100 dark:border-slate-800 text-[10px] sm:text-[11px] md:text-xs hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <td class="py-2.5 sm:py-3 px-3 sm:px-4 font-bold text-slate-700 dark:text-slate-300 uppercase">${item.dept}</td>
+                            <td class="py-2.5 sm:py-3 px-3 sm:px-4 text-emerald-600 dark:text-emerald-400 font-medium">${alloc}</td>
+                            <td class="py-2.5 sm:py-3 px-3 sm:px-4">${revok}</td>
+                        </tr>
+                    `;
+                });
+            } catch(e) {
+                 console.error("Parse Error:", e);
+                 tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-red-500 font-bold uppercase tracking-widest text-[10px]">Error parsing data.</td></tr>';
+            }
+        }
+
+        function openHistoryModal() {
+            document.getElementById('view-modal').classList.add('hidden');
+            document.getElementById('view-modal').classList.remove('flex');
+            document.getElementById('history-modal').classList.remove('hidden');
+            document.getElementById('history-modal').classList.add('flex');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('history-modal').classList.add('hidden');
+            document.getElementById('history-modal').classList.remove('flex');
+            document.getElementById('view-modal').classList.remove('hidden');
+            document.getElementById('view-modal').classList.add('flex');
+        }
+
+        function closeViewModal() {
+            document.getElementById('view-modal').classList.add('hidden');
+            document.getElementById('view-modal').classList.remove('flex');
+        }
+
+        // --- Edit Mode Logic ---
+        function switchToEditMode() {
+            if(!currentlyViewedItem) return;
+            
+            // Double check safety constraint
+            const isDiscarded = currentlyViewedItem.is_discarded == 1 || currentlyViewedItem.is_discarded == '1' || currentlyViewedItem.is_discarded === true;
+            if (isDiscarded) {
+                 showStatus("Discarded items cannot be edited.", true);
+                 return;
+            }
+            
+            document.getElementById('view-modal').classList.add('hidden');
+            document.getElementById('view-modal').classList.remove('flex');
+            
+            document.getElementById('edit-item-id').value = currentlyViewedItem.item_id;
+            document.getElementById('edit-item-name').value = currentlyViewedItem.item_name;
+            document.getElementById('edit-item-model').value = currentlyViewedItem.item_model;
+            document.getElementById('edit-item-mfr').value = currentlyViewedItem.item_manufacturer;
+            document.getElementById('edit-item-sn').value = currentlyViewedItem.serial_number;
+            
+            document.getElementById('edit-item-history').value = '';
+            document.getElementById('edit-item-history').placeholder = 'Optional: Overwrite allocation JSON... e.g. {"DEPT-ICU": {"allocation_date": "2026-04-15", "revoke_date": "nan"}}';
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+            document.getElementById('edit-modal').classList.add('flex');
+        }
+        
+        function closeEditModal() {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('flex');
+        }
+
+        async function submitEditItem(e) {
+            e.preventDefault();
+            const btn = document.getElementById('edit-submit-btn');
+            const originalText = btn.innerText;
+            btn.disabled = true; btn.innerText = "Saving...";
+
+            const fd = new FormData(e.target);
+            fd.append('action', 'edit_item');
+            fd.append('admin_id', activeUserId);
+
+            try {
+                const res = await fetch('../scripts/process_master_inventory.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                
+                if(json.status === 'success') {
+                    showStatus(json.message);
+                    closeEditModal();
+                    fetchInventory(); // Reload table
+                } else {
+                    showStatus(json.message, true);
+                }
+            } catch(e) {
+                showStatus("Mock edit saved (Backend not connected)", true);
+                closeEditModal();
+            }
+            
+            btn.disabled = false; btn.innerText = originalText;
+        }
+
+        // --- Deletion Logic ---
+        function confirmDelete(item) {
+            itemToDelete = item;
+            const desc = document.getElementById('modal-desc');
+            const locText = item.dept_name ? `currently assigned to <b class="text-slate-800 dark:text-slate-200">${item.dept_name}</b>` : `currently in the general store`;
+            
+            desc.innerHTML = `Are you sure you want to remove <b class="text-slate-800 dark:text-slate-200">${item.item_name}</b> (${item.item_model})? <br><br> This item is ${locText}. History will be safely archived.`;
+            
+            document.getElementById('delete-modal').classList.remove('hidden');
+            document.getElementById('delete-modal').classList.add('flex');
+            
+            document.getElementById('confirm-btn').onclick = executeDelete;
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            document.getElementById('delete-modal').classList.remove('flex');
+            itemToDelete = null;
+        }
+
+        async function executeDelete() {
+            if(!itemToDelete) return;
+            const btn = document.getElementById('confirm-btn');
+            btn.disabled = true; btn.innerText = "Processing...";
+
+            const fd = new FormData();
+            fd.append('action', 'delete_item');
+            fd.append('item_id', itemToDelete.item_id);
+            fd.append('dept_id', itemToDelete.dept_id || 'NAN');
+
+            try {
+                const res = await fetch('../scripts/process_inventory_removal.php', { method: 'POST', body: fd });
+                const json = await res.json();
+                if(json.status === 'success') {
+                    showStatus(json.message);
+                    closeDeleteModal();
+                    await fetchInventory(); // Reload table
+                } else { 
+                    showStatus(json.message, true); 
+                }
+            } catch(e) { 
+                showStatus("Database Error", true); 
+            }
+            
+            btn.disabled = false; btn.innerText = "Remove From System";
+        }
+    </script>
+</body>
+</html>
